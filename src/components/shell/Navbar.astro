@@ -1,0 +1,154 @@
+---
+import ThemeToggle from './ThemeToggle.astro';
+
+const currentPath = Astro.url.pathname;
+const isCurrent = (path: string) => currentPath === path || currentPath.startsWith(path + '/');
+---
+<header class="navbar">
+  <div class="container navbar-inner">
+    <a href="/" class="brand" aria-label="Home">
+      <span class="name">NAVANETH ANAND</span>
+      <span class="site-id">ORBIT WORKS</span>
+    </a>
+
+    <nav aria-label="Primary navigation">
+      <ul class="nav-links">
+        <li>
+          <a href="/projects" aria-current={isCurrent('/projects') ? 'page' : undefined}>Work</a>
+        </li>
+        <li>
+          <a href="/experience" aria-current={isCurrent('/experience') ? 'page' : undefined}>Experience</a>
+        </li>
+        <li>
+          <a href="/about" aria-current={isCurrent('/about') ? 'page' : undefined}>About</a>
+        </li>
+        <li>
+          <a href="/resume" aria-current={isCurrent('/resume') ? 'page' : undefined}>Resume</a>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="nav-actions">
+      <ThemeToggle />
+    </div>
+  </div>
+</header>
+
+<style>
+  .navbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: var(--color-bg);
+    border-bottom: 1px solid var(--color-border);
+    height: var(--layout-nav-height);
+    transition: background-color var(--transition-normal), border-color var(--transition-normal);
+  }
+
+  .navbar-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+  }
+
+  .brand {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+    gap: 1px;
+    transition: opacity var(--transition-fast);
+  }
+
+  .brand:hover {
+    opacity: 0.8;
+  }
+
+  .name {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--color-text-primary);
+  }
+
+  .site-id {
+    font-size: 0.625rem;
+    color: var(--color-text-muted);
+    letter-spacing: 0.1em;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: var(--space-4);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .nav-links a {
+    position: relative;
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    font-weight: 500;
+    padding: var(--space-1) 0;
+    transition: color var(--transition-fast);
+  }
+
+  .nav-links a:hover {
+    color: var(--color-text-primary);
+  }
+
+  /* Active state indicator */
+  .nav-links a[aria-current="page"] {
+    color: var(--color-accent);
+  }
+
+  .nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: var(--color-accent);
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform var(--transition-normal);
+  }
+
+  .nav-links a[aria-current="page"]::after {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+
+  .nav-links a:hover::after {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  @media (max-width: 600px) {
+    .nav-links {
+      gap: var(--space-3);
+    }
+
+    .nav-links a {
+      font-size: var(--text-xs);
+    }
+
+    .site-id {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nav-links a::after {
+      transition: none;
+    }
+  }
+</style>

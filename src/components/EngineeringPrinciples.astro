@@ -1,0 +1,38 @@
+---
+---
+<section class="engineering-principles" id="how-i-engineer">
+  <h2 class="section-title">How I Engineer</h2>
+  <div class="principles-container">
+    <div class="principle" id="principle-experiment">
+      <div class="principle-number">01</div>
+      <h3 class="principle-title">EXPERIMENT</h3>
+      <p class="principle-desc">Test multiple approaches before committing.</p>
+    </div>
+    <div class="principle-arrow">→</div>
+    <div class="principle" id="principle-simplify">
+      <div class="principle-number">02</div>
+      <h3 class="principle-title">SIMPLIFY</h3>
+      <p class="principle-desc">Use the simplest mechanism that actually solves the problem.</p>
+    </div>
+    <div class="principle-arrow">→</div>
+    <div class="principle" id="principle-measure">
+      <div class="principle-number">03</div>
+      <h3 class="principle-title">MEASURE</h3>
+      <p class="principle-desc">Validate outcomes with measurable results.</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .engineering-principles { margin-bottom: var(--space-10); }
+  .principles-container { display: flex; align-items: center; gap: var(--space-4); }
+  .principle { flex: 0 0 auto; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 8px; padding: var(--space-4); text-align: center; }
+  .principle-number { font-size: var(--text-sm); font-weight: 600; color: var(--color-accent); margin-bottom: var(--space-1); }
+  .principle-title { font-size: var(--text-lg); font-weight: 600; margin: var(--space-2) 0; color: var(--color-text-primary); }
+  .principle-desc { font-size: var(--text-sm); color: var(--color-text-secondary); line-height: 1.4; }
+  .principle-arrow { font-size: var(--text-lg); color: var(--color-text-muted); }
+  @media (max-width: 600px) {
+    .principles-container { flex-direction: column; }
+    .principle-arrow { display: none; }
+  }
+</style>

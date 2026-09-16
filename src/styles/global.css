@@ -1,0 +1,242 @@
+/* Orbit Works - Visual System Foundation */
+
+/* ----------------------------------------
+   Color tokens — Light mode (default)
+   ---------------------------------------- */
+:root {
+  --color-bg: #f0f2f5;
+  --color-surface: #ffffff;
+  --color-surface-hover: #e4e8ec;
+  --color-text-primary: #1a1b1e;
+  --color-text-secondary: #495057;
+  --color-text-muted: #717b85;
+  --color-border: #d1d7de;
+  --color-accent: #2575fc;
+  --color-accent-subtle: rgba(37, 117, 252, 0.1);
+  --color-canvas: rgba(255, 255, 255, 0.92);
+
+  /* Matte diffuse surface tokens — Light Mode */
+  --color-canvas-bg: #ffffff;
+  --color-canvas-glow: linear-gradient(to right, rgba(204,224,252,1) 0%, rgba(204,224,252,1) 5%, rgba(204,224,252,0) 50%, rgba(204,224,252,1) 95%, rgba(204,224,252,1) 100%), linear-gradient(to bottom, rgba(204,224,252,1) 0%, rgba(204,224,252,1) 1%, rgba(204,224,252,0) 13%);
+  --color-canvas-inset: inset 0 1px 0 0 rgba(255, 255, 255, 1), inset 0 0 40px 0 rgba(37, 117, 252, 0.05);
+  --color-canvas-shadow: 0 20px 60px -10px rgba(0, 0, 0, 0.12), 0 0 30px 0 rgba(37, 117, 252, 0.06);
+
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 1rem;
+  --space-4: 1.5rem;
+  --space-5: 2rem;
+  --space-6: 3rem;
+  --space-8: 4rem;
+  --space-12: 6rem;
+
+  /* Layout */
+  --layout-max-width: 1080px;
+  --layout-nav-height: 4rem;
+
+  /* Typography */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 2rem;
+  --text-4xl: 2.5rem;
+
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ----------------------------------------
+   Dark mode — system preference
+   ---------------------------------------- */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #0b0c10;
+    --color-surface: #121418;
+    --color-surface-hover: #1c1f26;
+    --color-text-primary: #e9ecef;
+    --color-text-secondary: #adb5bd;
+    --color-text-muted: #5c6470;
+    --color-border: #2b303b;
+    --color-accent: #4dabf7;
+    --color-accent-subtle: rgba(77, 171, 247, 0.12);
+    --color-canvas: rgba(18, 20, 26, 0.85);
+
+    /* Matte diffuse surface tokens — Dark Mode */
+    --color-canvas-bg: rgba(14, 16, 22, 0.88);
+    --color-canvas-glow: radial-gradient(100% 65% at 50% 0%, rgba(77, 171, 247, 0.14) 0%, rgba(255, 255, 255, 0.05) 45%, transparent 85%);
+    --color-canvas-inset: inset 0 1px 0 0 rgba(255, 255, 255, 0.22), inset 0 0 40px 0 rgba(77, 171, 247, 0.04);
+    --color-canvas-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.65), 0 0 35px 0 rgba(77, 171, 247, 0.06);
+  }
+}
+
+/* ----------------------------------------
+   Explicit theme overrides via data-theme
+   ---------------------------------------- */
+[data-theme="dark"] {
+  --color-bg: #0b0c10;
+  --color-surface: #121418;
+  --color-surface-hover: #1c1f26;
+  --color-text-primary: #e9ecef;
+  --color-text-secondary: #adb5bd;
+  --color-text-muted: #5c6470;
+  --color-border: #2b303b;
+  --color-accent: #4dabf7;
+  --color-accent-subtle: rgba(77, 171, 247, 0.12);
+  --color-canvas: rgba(18, 20, 26, 0.85);
+
+  --color-canvas-bg: rgba(14, 16, 22, 0.88);
+  --color-canvas-glow: radial-gradient(100% 65% at 50% 0%, rgba(77, 171, 247, 0.14) 0%, rgba(255, 255, 255, 0.05) 45%, transparent 85%);
+  --color-canvas-inset: inset 0 1px 0 0 rgba(255, 255, 255, 0.22), inset 0 0 40px 0 rgba(77, 171, 247, 0.04);
+  --color-canvas-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.65), 0 0 35px 0 rgba(77, 171, 247, 0.06);
+}
+
+[data-theme="light"] {
+  --color-bg: #f0f2f5;
+  --color-surface: #ffffff;
+  --color-surface-hover: #e4e8ec;
+  --color-text-primary: #1a1b1e;
+  --color-text-secondary: #495057;
+  --color-text-muted: #717b85;
+  --color-border: #d1d7de;
+  --color-accent: #2575fc;
+  --color-accent-subtle: rgba(37, 117, 252, 0.1);
+  --color-canvas: rgba(255, 255, 255, 0.92);
+
+  --color-canvas-bg: #ffffff;
+  --color-canvas-glow: linear-gradient(to right, rgba(204,224,252,1) 0%, rgba(204,224,252,1) 5%, rgba(204,224,252,0) 50%, rgba(204,224,252,1) 95%, rgba(204,224,252,1) 100%), linear-gradient(to bottom, rgba(204,224,252,1) 0%, rgba(204,224,252,1) 1%, rgba(204,224,252,0) 13%);
+
+
+
+  --color-canvas-inset: inset 0 1px 0 0 rgba(255, 255, 255, 1), inset 0 0 40px 0 rgba(37, 117, 252, 0.05);
+  --color-canvas-shadow: 0 20px 60px -10px rgba(0, 0, 0, 0.12), 0 0 30px 0 rgba(37, 117, 252, 0.06);
+}
+
+/* ----------------------------------------
+   Base reset
+   ---------------------------------------- */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/*
+  background-color lives on <html> so that the fixed canvas at z-index:-1
+  is visible behind <body> content. Body remains transparent so the canvas
+  shows through. The html background provides the base color.
+*/
+html {
+  background-color: var(--color-bg);
+  transition: background-color var(--transition-normal);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: transparent;
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: color var(--transition-normal);
+}
+
+::selection {
+  background-color: var(--color-accent-subtle);
+  color: var(--color-accent);
+}
+
+/* ----------------------------------------
+   Typography baseline
+   ---------------------------------------- */
+h1, h2, h3, h4, h5, h6 {
+  margin: 0 0 var(--space-3) 0;
+  line-height: 1.2;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  letter-spacing: -0.02em;
+}
+
+p {
+  margin: 0 0 var(--space-4) 0;
+  color: var(--color-text-secondary);
+}
+
+a {
+  color: var(--color-text-primary);
+  text-decoration: none;
+  transition: color var(--transition-fast), opacity var(--transition-fast);
+}
+
+a:hover {
+  color: var(--color-accent);
+}
+
+/* Focus styles for keyboard navigation */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* ----------------------------------------
+   Animation & Interaction System
+   ---------------------------------------- */
+.reveal {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.6s cubic-bezier(0.2, 0.8, 0.2, 1),
+              transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ----------------------------------------
+   Reduced motion
+   ---------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+/* ----------------------------------------
+   Layout utilities
+   ---------------------------------------- */
+.container {
+  max-width: var(--layout-max-width);
+  margin: 0 auto;
+  padding: 0 var(--space-4);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

@@ -1,0 +1,47 @@
+---
+import Card from './primitives/Card.astro';
+import Badge from './primitives/Badge.astro';
+
+const { project } = Astro.props;
+---
+<Card href={`/projects/${project.id}`}>
+  <div class="project-card-inner">
+    <h3 class="project-title">{project.data.title}</h3>
+    <p class="project-desc">{project.data.shortDescription}</p>
+    <div class="project-meta">
+      {project.data.technologies && project.data.technologies.slice(0, 3).map((t: string) => (
+        <Badge text={t} />
+      ))}
+    </div>
+  </div>
+</Card>
+
+<style>
+  .project-card-inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    height: 100%;
+  }
+
+  .project-title {
+    font-size: var(--text-base);
+    font-weight: 600;
+    margin: 0;
+    color: var(--color-text-primary);
+  }
+
+  .project-desc {
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    margin: 0;
+    flex: 1;
+  }
+
+  .project-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+    margin-top: var(--space-2);
+  }
+</style>

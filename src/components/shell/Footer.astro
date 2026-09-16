@@ -1,0 +1,55 @@
+---
+const currentYear = new Date().getFullYear();
+---
+<footer class="footer">
+  <div class="container footer-inner">
+    <div class="footer-info">
+      <span class="author">Navaneth Anand</span>
+      <span class="sep" aria-hidden="true">&middot;</span>
+      <span class="site-id">Orbit Works</span>
+    </div>
+    <div class="footer-copy">
+      <span>&copy; {currentYear}</span>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    padding: var(--space-8) 0 var(--space-6);
+    border-top: 1px solid var(--color-border);
+    margin-top: var(--space-12);
+  }
+
+  .footer-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  .footer-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .author {
+    color: var(--color-text-secondary);
+  }
+
+  .site-id {
+    font-size: var(--text-xs);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 600px) {
+    .footer-inner {
+      flex-direction: column;
+      gap: var(--space-3);
+      text-align: center;
+    }
+  }
+</style>

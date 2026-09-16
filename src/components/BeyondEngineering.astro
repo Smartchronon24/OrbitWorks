@@ -1,0 +1,83 @@
+---
+---
+<section class="beyond-engineering" id="beyond-engineering">
+  <h2 class="section-title">Beyond Engineering</h2>
+  <div class="beyond-grid">
+    <article class="beyond-item">
+      <div class="beyond-copy">
+        <p>Chess – FIDE tournament participation</p>
+      </div>
+      <img src="/images/beyond/chess.svg" alt="Chess board illustration" class="beyond-image" />
+    </article>
+    <article class="beyond-item beyond-item--reverse">
+      <img src="/images/beyond/gaming.svg" alt="Gaming controller illustration" class="beyond-image" />
+      <div class="beyond-copy">
+        <p>Techno‑VIT – Gaming event organization</p>
+      </div>
+    </article>
+    <article class="beyond-item">
+      <div class="beyond-copy">
+        <p>Video editing / YouTube channel</p>
+      </div>
+      <img src="/images/beyond/video-editing.svg" alt="Video editing illustration" class="beyond-image" />
+    </article>
+    <article class="beyond-item beyond-item--reverse">
+      <img src="/images/beyond/japanese-learning.jpeg" alt="450-day Duolingo Japanese learning streak" class="beyond-image" />
+      <div class="beyond-copy">
+        <p>450+ day Japanese learning streak in Duolingo</p>
+      </div>
+    </article>
+    <article class="beyond-item">
+      <div class="beyond-copy">
+        <p>Climbed up into top 10% of the player base in Ranked E-sports game</p>
+      </div>
+      <img src="/images/beyond/esports.svg" alt="Ranked esports achievement illustration" class="beyond-image" />
+    </article>
+  </div>
+</section>
+
+<style>
+  .beyond-engineering {
+    margin: var(--space-12) 0;
+    margin-bottom: var(--space-10);
+  }
+  .beyond-engineering .section-title {
+    margin-bottom: var(--space-6);
+  }
+  .beyond-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+  .beyond-item {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: var(--space-8);
+    min-height: 162px;
+  }
+  .beyond-copy {
+    font-size: 1.125rem;
+    line-height: 1.45;
+    color: var(--color-text-secondary);
+  }
+  .beyond-copy p { margin: 0; }
+  .beyond-image {
+    display: block;
+    width: 100%;
+    max-height: 198px;
+    object-fit: cover;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    box-shadow: 0 12px 28px color-mix(in srgb, var(--color-text-primary) 8%, transparent);
+  }
+  @media (max-width: 600px) {
+    .beyond-item,
+    .beyond-item--reverse {
+      grid-template-columns: 1fr;
+      gap: var(--space-3);
+    }
+    .beyond-item--reverse .beyond-copy { order: 2; }
+    .beyond-copy { font-size: var(--text-lg); }
+  }
+</style>

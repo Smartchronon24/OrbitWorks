@@ -1,0 +1,82 @@
+---
+---
+<button id="theme-toggle" class="theme-toggle" aria-label="Toggle light/dark theme">
+  <!-- Sun icon (shown in dark mode) -->
+  <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <circle cx="12" cy="12" r="5"></circle>
+    <line x1="12" y1="1" x2="12" y2="3"></line>
+    <line x1="12" y1="21" x2="12" y2="23"></line>
+    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+    <line x1="1" y1="12" x2="3" y2="12"></line>
+    <line x1="21" y1="12" x2="23" y2="12"></line>
+    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+  </svg>
+  <!-- Moon icon (shown in light mode) -->
+  <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+  </svg>
+</button>
+
+<style>
+  .theme-toggle {
+    background: transparent;
+    border: none;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    padding: var(--space-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: color var(--transition-fast), background-color var(--transition-fast);
+    line-height: 1;
+  }
+
+  .theme-toggle:hover {
+    color: var(--color-text-primary);
+    background-color: var(--color-surface-hover);
+  }
+
+  /* Dark theme: show sun, hide moon */
+  :global([data-theme="dark"]) .icon-moon { display: none; }
+  :global([data-theme="dark"]) .icon-sun  { display: block; }
+
+  /* Light theme: show moon, hide sun */
+  :global([data-theme="light"]) .icon-sun  { display: none; }
+  :global([data-theme="light"]) .icon-moon { display: block; }
+
+  /* Fallback before JS runs — match system preference */
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme])) .icon-moon { display: none; }
+    :global(:root:not([data-theme])) .icon-sun  { display: block; }
+  }
+  @media (prefers-color-scheme: light) {
+    :global(:root:not([data-theme])) .icon-sun  { display: none; }
+    :global(:root:not([data-theme])) .icon-moon { display: block; }
+  }
+</style>
+
+<script>
+  const toggle = document.getElementById('theme-toggle');
+
+  const getTheme = (): string => {
+    const stored = typeof localStorage !== 'undefined' ? localStorage.getItem('theme') : null;
+    if (stored === 'dark' || stored === 'light') return stored;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  };
+
+  const applyTheme = (theme: string) => {
+    document.documentElement.setAttribute('data-theme', theme);
+    if (typeof localStorage !== 'undefined') localStorage.setItem('theme', theme);
+  };
+
+  // Apply on load (also handled inline in BaseLayout to avoid FOUC)
+  applyTheme(getTheme());
+
+  toggle?.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+  });
+</script>

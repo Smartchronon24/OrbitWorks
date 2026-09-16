@@ -1,0 +1,120 @@
+---
+import { experience } from '../../data/experience';
+---
+<section class="exp-preview reveal">
+  <div class="ep-header">
+    <p class="ep-eyebrow">EXPERIENCE</p>
+  </div>
+
+  <div class="ep-list">
+    {experience.map(job => (
+      <div class="ep-item">
+        <div class="ep-meta">
+          <span class="ep-dates">{job.dates}</span>
+        </div>
+        <div class="ep-body">
+          <p class="ep-role">{job.role}</p>
+          <p class="ep-company">{job.company}</p>
+          <p class="ep-desc">{job.description}</p>
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <a href="/experience" class="ep-more">View full experience <span class="arrow" aria-hidden="true">→</span></a>
+</section>
+
+<style>
+  .exp-preview {
+    padding: var(--space-12) 0;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .ep-eyebrow {
+    font-size: var(--text-xs);
+    font-family: var(--font-mono);
+    letter-spacing: 0.14em;
+    color: var(--color-text-muted);
+    margin: 0 0 var(--space-6) 0;
+  }
+
+  .ep-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    margin-bottom: var(--space-6);
+  }
+
+  .ep-item {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: var(--space-4);
+    padding-bottom: var(--space-6);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .ep-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .ep-meta {
+    padding-top: 3px;
+  }
+
+  .ep-dates {
+    font-size: var(--text-xs);
+    font-family: var(--font-mono);
+    color: var(--color-text-muted);
+    letter-spacing: 0.04em;
+    display: block;
+    line-height: 1.4;
+  }
+
+  .ep-role {
+    font-size: var(--text-base);
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0 0 2px 0;
+  }
+
+  .ep-company {
+    font-size: var(--text-sm);
+    color: var(--color-accent);
+    margin: 0 0 var(--space-2) 0;
+  }
+
+  .ep-desc {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  .ep-more {
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: color var(--transition-fast);
+  }
+  .ep-more:hover { color: var(--color-accent); }
+
+  .ep-more .arrow {
+    transition: transform var(--transition-fast);
+  }
+
+  .ep-more:hover .arrow {
+    transform: translateX(3px);
+  }
+
+  @media (max-width: 600px) {
+    .exp-preview { padding: var(--space-8) 0; }
+    .ep-item {
+      grid-template-columns: 1fr;
+      gap: var(--space-2);
+    }
+  }
+</style>

@@ -1,0 +1,286 @@
+---
+import { journey } from '../../data/journey';
+---
+<section class="eng-journey reveal">
+  <div class="ej-header">
+    <p class="ej-eyebrow">ENGINEERING JOURNEY</p>
+    <p class="ej-subtitle">An evolution across hardware, software, data, and AI.</p>
+  </div>
+
+  <div class="ej-track-wrap" role="list" aria-label="Engineering evolution">
+    <div class="ej-track">
+      {journey.map((step, i) => (
+        <div class:list={['ej-node', { 'ej-node--current': step.current }]} role="listitem">
+          <div class="ej-dot" aria-hidden="true"></div>
+          <div class="ej-label">
+            <span class="ej-step">{step.label}</span>
+            <span class="ej-area">{step.area}</span>
+          </div>
+          {i < journey.length - 1 && (
+            <div class="ej-connector" aria-hidden="true"></div>
+          )}
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script>
+  const wrap = document.querySelector('.ej-track-wrap') as HTMLElement | null;
+  if (wrap) {
+    let scrollSpeed = 0.401; // smooth pixels per frame
+    let direction = 1; // 1 = right, -1 = left
+    let isPaused = false;
+    let isDragging = false;
+    let pauseTimer: ReturnType<typeof setTimeout> | null = null;
+    let startX = 0;
+    let scrollLeft = 0;
+
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function triggerSoftPause(newDirection: number) {
+      isPaused = true;
+      direction = newDirection;
+      if (pauseTimer) clearTimeout(pauseTimer);
+      pauseTimer = setTimeout(() => {
+        if (!isDragging) {
+          isPaused = false;
+        }
+      }, 5000); // 2.5s soft stop at each end
+    }
+
+    // Auto-scroll loop back and forth with soft stops
+    function autoScroll() {
+      if (!isPaused && !isDragging && !prefersReducedMotion && wrap) {
+        const maxScroll = wrap.scrollWidth - wrap.clientWidth;
+        if (maxScroll > 4) {
+          wrap.scrollLeft += scrollSpeed * direction;
+
+          if (direction === 1 && wrap.scrollLeft >= maxScroll - 2) {
+            wrap.scrollLeft = maxScroll;
+            triggerSoftPause(-1);
+          } else if (direction === -1 && wrap.scrollLeft <= 2) {
+            wrap.scrollLeft = 0;
+            triggerSoftPause(1);
+          }
+        }
+      }
+      requestAnimationFrame(autoScroll);
+    }
+
+    // Pause on mouse hover / touch
+    wrap.addEventListener('mouseenter', () => { isPaused = true; });
+    wrap.addEventListener('mouseleave', () => {
+      if (!isDragging && !pauseTimer) {
+        isPaused = false;
+      }
+    });
+
+    // Mouse Drag Implementation
+    wrap.addEventListener('mousedown', (e: MouseEvent) => {
+      isDragging = true;
+      isPaused = true;
+      if (pauseTimer) clearTimeout(pauseTimer);
+      wrap.classList.add('is-dragging');
+      startX = e.pageX - wrap.offsetLeft;
+      scrollLeft = wrap.scrollLeft;
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (isDragging) {
+        isDragging = false;
+        isPaused = false;
+        wrap.classList.remove('is-dragging');
+      }
+    });
+
+    window.addEventListener('mousemove', (e: MouseEvent) => {
+      if (!isDragging) return;
+      e.preventDefault();
+      const x = e.pageX - wrap.offsetLeft;
+      const walk = (x - startX) * 1.5;
+      wrap.scrollLeft = scrollLeft - walk;
+    });
+
+    // Touch events for mobile/tablet
+    wrap.addEventListener('touchstart', () => { isPaused = true; }, { passive: true });
+    wrap.addEventListener('touchend', () => { isPaused = false; }, { passive: true });
+
+    // Launch auto scroll loop
+    requestAnimationFrame(autoScroll);
+  }
+</script>
+
+<style>
+  .eng-journey {
+    margin: var(--space-6) 0;
+    padding: var(--space-6) 0;
+    border-top: 1px solid var(--color-border);
+    overflow: hidden;
+  }
+
+  .ej-header {
+    margin-bottom: var(--space-8);
+  }
+
+  .ej-eyebrow {
+    font-size: var(--text-xs);
+    font-family: var(--font-mono);
+    letter-spacing: 0.14em;
+    color: var(--color-text-muted);
+    margin: 0 0 var(--space-2) 0;
+  }
+
+  .ej-subtitle {
+    font-size: var(--text-base);
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  /* ── Desktop: horizontal scroll track ── */
+  .ej-track-wrap {
+    overflow-x: auto;
+    overflow-y: visible;
+    padding-bottom: var(--space-3);
+    /* Hide scrollbar on desktop */
+    scrollbar-width: none;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .ej-track-wrap::-webkit-scrollbar { display: none; }
+  .ej-track-wrap.is-dragging {
+    cursor: grabbing;
+  }
+
+  .ej-track {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    min-width: max-content;
+    padding: var(--space-3) 0 var(--space-4);
+  }
+
+  .ej-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .ej-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--color-border);
+    border: 1.5px solid var(--color-text-muted);
+    flex-shrink: 0;
+    transition: background-color var(--transition-fast), border-color var(--transition-fast);
+    z-index: 1;
+  }
+
+  .ej-node--current .ej-dot {
+    background-color: var(--color-accent);
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px var(--color-accent-subtle);
+  }
+
+  .ej-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    margin-top: var(--space-2);
+    text-align: center;
+    padding: 0 var(--space-3);
+  }
+
+  .ej-step {
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--color-text-primary);
+    white-space: nowrap;
+  }
+
+  .ej-node--current .ej-step {
+    color: var(--color-accent);
+  }
+
+  .ej-area {
+    font-size: var(--text-xs);
+    font-family: var(--font-mono);
+    color: var(--color-text-muted);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+
+  /* Horizontal connector line between nodes */
+  .ej-connector {
+    position: absolute;
+    top: 3.5px; /* vertically centred on the dot */
+    left: calc(50% + 4px);
+    height: 1px;
+    /* Width spans the full gap between nodes — driven by label widths */
+    width: calc(100% + var(--space-3) * 2 - 8px);
+    background: linear-gradient(
+      to right,
+      var(--color-border),
+      var(--color-text-muted) 50%,
+      var(--color-border)
+    );
+    opacity: 0.4;
+  }
+
+  /* ── Mobile: vertical timeline ── */
+  @media (max-width: 768px) {
+    .ej-track-wrap {
+      overflow-x: visible;
+    }
+
+    .ej-track {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0;
+      min-width: unset;
+      padding: 0;
+    }
+
+    .ej-node {
+      flex-direction: row;
+      align-items: flex-start;
+      padding: var(--space-2) 0;
+    }
+
+    .ej-dot {
+      margin-top: 4px;
+      flex-shrink: 0;
+    }
+
+    .ej-label {
+      flex-direction: row;
+      align-items: baseline;
+      gap: var(--space-2);
+      padding: 0 0 0 var(--space-3);
+      text-align: left;
+      margin-top: 0;
+    }
+
+    /* Vertical connector on mobile */
+    .ej-connector {
+      top: unset;
+      left: 3.5px;
+      width: 1px;
+      height: 100%;
+      background: linear-gradient(to bottom, var(--color-border), transparent);
+      opacity: 0.4;
+      /* Vertical connector positioned along the left dot column */
+      position: absolute;
+      top: 24px;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .eng-journey { padding: var(--space-8) 0; }
+  }
+</style>

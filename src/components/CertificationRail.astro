@@ -1,0 +1,117 @@
+---
+import { certifications } from '../data/certifications';
+---
+<section class="certifications-section" id="certifications">
+  <h2 class="section-title">Certifications</h2>
+  <div class="cert-rail" role="list" aria-label="Certificates">
+    {certifications.map(group => (
+      <div class="cert-group" key={group.category}>
+        <div class="cert-items">
+          {group.items.map(cert => (
+            <div class="cert-item" key={cert.name} role="listitem">
+              <div class="cert-info">
+                <span class="cert-name">{cert.name}</span>
+                <span class="cert-issuer">{cert.issuer}</span>
+              </div>
+              {cert.image ? (
+                <a class="cert-card" href={cert.image} target="_blank" rel="noopener noreferrer" aria-label={`Open ${cert.name} certificate`}>
+                  <img src={cert.image} alt={`${cert.name} certificate`} class="cert-img" />
+                </a>
+              ) : (
+                <div class="cert-card">
+                  <div class="cert-image-placeholder">Certificate image unavailable</div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    ))}
+  </div>
+</section>
+
+<script>
+  const rail = document.querySelector('.cert-rail') as HTMLElement | null;
+  if (rail) {
+    let direction = 1;
+    let isPaused = false;
+    let isDragging = false;
+    let pauseTimer: ReturnType<typeof setTimeout> | null = null;
+    let startX = 0;
+    let scrollLeft = 0;
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function pauseAtEnd(nextDirection: number) {
+      isPaused = true;
+      direction = nextDirection;
+      if (pauseTimer) clearTimeout(pauseTimer);
+      pauseTimer = setTimeout(() => {
+        if (!isDragging) isPaused = false;
+      }, 5000);
+    }
+
+    function autoScroll() {
+      if (!isPaused && !isDragging && !prefersReducedMotion) {
+        const maxScroll = rail.scrollWidth - rail.clientWidth;
+        if (maxScroll > 4) {
+          rail.scrollLeft += 0.401 * direction;
+          if (direction === 1 && rail.scrollLeft >= maxScroll - 2) {
+            rail.scrollLeft = maxScroll;
+            pauseAtEnd(-1);
+          } else if (direction === -1 && rail.scrollLeft <= 2) {
+            rail.scrollLeft = 0;
+            pauseAtEnd(1);
+          }
+        }
+      }
+      requestAnimationFrame(autoScroll);
+    }
+
+    rail.addEventListener('mouseenter', () => { isPaused = true; });
+    rail.addEventListener('mouseleave', () => {
+      if (!isDragging && !pauseTimer) isPaused = false;
+    });
+    rail.addEventListener('mousedown', (event: MouseEvent) => {
+      isDragging = true;
+      isPaused = true;
+      if (pauseTimer) clearTimeout(pauseTimer);
+      rail.classList.add('is-dragging');
+      startX = event.pageX - rail.offsetLeft;
+      scrollLeft = rail.scrollLeft;
+    });
+    window.addEventListener('mouseup', () => {
+      if (isDragging) {
+        isDragging = false;
+        isPaused = false;
+        rail.classList.remove('is-dragging');
+      }
+    });
+    window.addEventListener('mousemove', (event: MouseEvent) => {
+      if (!isDragging) return;
+      event.preventDefault();
+      const x = event.pageX - rail.offsetLeft;
+      rail.scrollLeft = scrollLeft - (x - startX) * 1.5;
+    });
+    rail.addEventListener('touchstart', () => { isPaused = true; }, { passive: true });
+    rail.addEventListener('touchend', () => { isPaused = false; }, { passive: true });
+    requestAnimationFrame(autoScroll);
+  }
+</script>
+
+<style>
+  .certifications-section { margin: var(--space-12) 0; }
+  .cert-rail { display: flex; flex-wrap: nowrap; overflow-x: auto; gap: var(--space-6); padding-bottom: var(--space-4); scrollbar-width: thin; cursor: grab; user-select: none; -webkit-user-select: none; }
+  .cert-rail::-webkit-scrollbar { height: 8px; }
+  .cert-rail::-webkit-scrollbar-thumb { background-color: var(--color-border); border-radius: 4px; }
+  .cert-rail.is-dragging { cursor: grabbing; }
+  .cert-group { flex: 0 0 auto; min-width: 300px; }
+  .cert-items { display: flex; gap: var(--space-5); align-items: flex-start; }
+  .cert-item { flex: 0 0 280px; min-width: 280px; display: flex; flex-direction: column; }
+  .cert-info { height: 3.75rem; margin-bottom: var(--space-2); overflow: hidden; }
+  .cert-name { display: block; font-size: var(--text-sm); font-weight: 500; color: var(--color-text-secondary); line-height: 1.4; }
+  .cert-issuer { display: block; font-size: var(--text-xs); color: var(--color-text-muted); margin-top: 2px; line-height: 1.3; }
+  .cert-card { display: block; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 8px; padding: var(--space-3); min-width: 280px; height: 210px; box-sizing: border-box; cursor: pointer; }
+  .cert-card:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }
+  .cert-image-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--color-text-muted); font-size: var(--text-xs); text-align: center; }
+  .cert-img { display: block; width: 100%; height: 100%; object-fit: contain; }
+</style>

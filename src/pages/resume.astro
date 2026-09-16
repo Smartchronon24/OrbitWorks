@@ -1,0 +1,128 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Button from '../components/primitives/Button.astro';
+---
+<BaseLayout title="Resume — Navaneth Anand">
+  <section class="resume-page">
+    <header class="page-header reveal">
+      <div class="header-left">
+        <h1 class="page-title">Resume</h1>
+        <p class="page-lead">A concise professional overview. See <a href="/projects" class="inline-link">Work</a> for deeper context.</p>
+      </div>
+      <div class="header-right">
+        <Button href="/resume.pdf" variant="primary" class="download-btn">Open PDF</Button>
+      </div>
+    </header>
+
+    <div class="resume-viewer reveal" style="transition-delay: 0.1s;">
+      <object
+        data="/resume.pdf"
+        type="application/pdf"
+        class="pdf-object"
+      >
+        <div class="pdf-fallback">
+          <p>Your browser doesn't support inline PDFs.</p>
+          <Button href="/resume.pdf" variant="outline">Download Resume</Button>
+        </div>
+      </object>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .resume-page {
+    max-width: 880px;
+    margin: 0 auto;
+    padding-bottom: var(--space-12);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+  }
+
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--space-4);
+    margin-bottom: var(--space-2);
+  }
+
+  .header-left {
+    flex: 1;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    padding-top: var(--space-1);
+  }
+
+  .page-title {
+    font-size: var(--text-4xl);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0 0 var(--space-3) 0;
+    color: var(--color-text-primary);
+  }
+
+  .page-lead {
+    font-size: var(--text-lg);
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  .inline-link {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .inline-link:hover {
+    text-decoration: underline;
+  }
+
+  .resume-viewer {
+    width: 100%;
+    height: 75vh;
+    min-height: 600px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: var(--color-surface);
+  }
+
+  .pdf-object {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .pdf-fallback {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-4);
+    height: 100%;
+    padding: var(--space-6);
+    text-align: center;
+    color: var(--color-text-secondary);
+  }
+
+  @media (max-width: 768px) {
+    .resume-actions {
+      justify-content: flex-start;
+    }
+    
+    /* On smaller screens, the native PDF viewer in some mobile browsers works poorly.
+       We still show it, but the explicit 'Open PDF' button above it is crucial. */
+    .resume-viewer {
+      height: 60vh;
+      min-height: 400px;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .resume-page { padding-bottom: var(--space-8); }
+    .page-title { font-size: var(--text-3xl); }
+  }
+</style>

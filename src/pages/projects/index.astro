@@ -1,0 +1,353 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const all = await getCollection('projects');
+
+// Sort by order field; unset → sort last, then alphabetically
+const projects = [...all].sort((a, b) => {
+  const oa = a.data.order ?? 9999;
+  const ob = b.data.order ?? 9999;
+  if (oa !== ob) return oa - ob;
+  return a.data.title.localeCompare(b.data.title);
+});
+
+// Keep the same readable project typography across the full work list.
+const tier = () => 'major';
+---
+<BaseLayout title="Work — Navaneth Anand">
+  <section class="projects-page">
+    <header class="pl-header reveal">
+      <p class="pl-eyebrow">WORK</p>
+      <h1 class="pl-title">Projects &amp; Case Studies</h1>
+      <p class="pl-lead">
+        Systems built, experiments run, problems explored.
+      </p>
+    </header>
+
+    <div class="pl-list">
+      {projects.map((project, i) => (
+        <a
+          href={`/projects/${project.id}`}
+          class={`pl-item pl-item--${tier(project.data.order)} reveal`}
+          style={`transition-delay: ${i * 0.05}s`}
+        >
+          {project.id === 'jarvis' && (
+            <div
+              id="jarvis-work-particles-mesh"
+              class="jarvis-work-particles-mesh"
+              aria-hidden="true"
+            ></div>
+          )}
+          <div class="pl-item-meta">
+            <span class="pl-index">{String(i + 1).padStart(2, '0')}</span>
+            {project.data.status && (
+              <span class={`pl-status pl-status--${project.data.status.toLowerCase()}`}>
+                {project.data.status}
+              </span>
+            )}
+          </div>
+          <div class="pl-item-body">
+            <h2 class="pl-item-title">{project.data.title}</h2>
+            <p class="pl-item-desc">{project.data.shortDescription}</p>
+          </div>
+          <span class="pl-item-arrow" aria-hidden="true">→</span>
+        </a>
+      ))}
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .projects-page {
+    padding-bottom: var(--space-12);
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  .pl-header {
+    padding-bottom: var(--space-8);
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: var(--space-8);
+    text-align: center;
+  }
+
+  .pl-eyebrow {
+    font-size: var(--text-xs);
+    font-family: var(--font-mono);
+    letter-spacing: 0.14em;
+    color: var(--color-text-muted);
+    margin: 0 0 var(--space-3) 0;
+  }
+
+  .pl-title {
+    font-size: var(--text-3xl);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0 0 var(--space-3) 0;
+  }
+
+  .pl-lead {
+    font-size: var(--text-lg);
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  /* ── Project list ── */
+  .pl-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .pl-item {
+    display: grid;
+    grid-template-columns: 64px 1fr 24px;
+    gap: var(--space-4);
+    align-items: start;
+    padding: var(--space-5) 0;
+    border-bottom: 1px solid var(--color-border);
+    text-decoration: none;
+    color: inherit;
+    transition: background-color var(--transition-fast), padding var(--transition-fast), margin var(--transition-fast);
+    border-radius: 4px;
+  }
+
+  .pl-item:hover {
+    background-color: var(--color-surface);
+    padding-left: var(--space-3);
+    padding-right: var(--space-3);
+    margin-left: calc(-1 * var(--space-3));
+    margin-right: calc(-1 * var(--space-3));
+  }
+
+  .pl-item:hover .pl-item-arrow {
+    color: var(--color-accent);
+    transform: translateX(3px);
+  }
+
+  /* Tier visual weight */
+  .pl-item--major .pl-item-title {
+    font-size: var(--text-xl);
+  }
+
+  .pl-item--major {
+    padding-top: var(--space-6);
+    padding-bottom: var(--space-6);
+  }
+
+  .pl-item--medium .pl-item-title {
+    font-size: var(--text-lg);
+  }
+
+  .pl-item--supporting .pl-item-title {
+    font-size: var(--text-base);
+  }
+
+  .pl-item--supporting .pl-item-desc {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  .pl-item-meta {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    padding-top: 4px;
+  }
+
+  .pl-index {
+    font-size: var(--text-xs);
+    font-family: var(--font-mono);
+    color: var(--color-text-muted);
+    opacity: 0.5;
+    letter-spacing: 0.06em;
+  }
+
+  .pl-status {
+    font-size: 0.6rem;
+    font-family: var(--font-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 9999px;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    width: fit-content;
+  }
+
+  .pl-status--active {
+    color: var(--color-accent);
+    border-color: var(--color-accent-subtle);
+    background-color: var(--color-accent-subtle);
+  }
+
+  .pl-item-title {
+    font-weight: 600;
+    margin: 0 0 var(--space-1) 0;
+    color: var(--color-text-primary);
+    transition: color var(--transition-fast);
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+  }
+
+  .pl-item-desc {
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  .pl-item-arrow {
+    font-size: var(--text-base);
+    color: var(--color-text-muted);
+    padding-top: 4px;
+    transition: color var(--transition-fast), transform var(--transition-fast);
+  }
+
+  .pl-item:has(.jarvis-work-particles-mesh) {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  .jarvis-work-particles-mesh {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: auto;
+  }
+
+  .jarvis-work-particles-mesh canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .pl-item:has(.jarvis-work-particles-mesh) .pl-item-meta,
+  .pl-item:has(.jarvis-work-particles-mesh) .pl-item-body,
+  .pl-item:has(.jarvis-work-particles-mesh) .pl-item-arrow {
+    position: relative;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .pl-item:has(.jarvis-work-particles-mesh) .pl-item-arrow {
+    pointer-events: auto;
+  }
+
+  @media (max-width: 600px) {
+    .pl-item {
+      grid-template-columns: 44px 1fr 20px;
+      gap: var(--space-3);
+    }
+
+    .pl-item--major { padding-top: var(--space-4); padding-bottom: var(--space-4); }
+
+    .pl-item:hover {
+      padding-left: var(--space-2);
+      padding-right: var(--space-2);
+      margin-left: calc(-1 * var(--space-2));
+      margin-right: calc(-1 * var(--space-2));
+    }
+
+    .pl-item--major .pl-item-title { font-size: var(--text-lg); }
+    .pl-item--medium .pl-item-title { font-size: var(--text-base); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pl-item { transition: background-color var(--transition-fast); }
+  }
+</style>
+
+<script is:inline src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+<script is:inline>
+  (function () {
+    function initializeJarvisWorkParticles() {
+      if (typeof window.particlesJS !== 'function') return;
+      const mesh = document.getElementById('jarvis-work-particles-mesh');
+      if (!mesh || mesh.dataset.initialized === 'true') return;
+      mesh.dataset.initialized = 'true';
+
+      window.particlesJS('jarvis-work-particles-mesh', {
+        particles: {
+          number: { value: 68, density: { enable: true, value_area: 420 } },
+          color: { value: '#3b82f6' },
+          shape: { type: 'circle' },
+          opacity: {
+            value: 0.6,
+            random: true,
+            anim: { enable: true, speed: 1, opacity_min: 0.2, sync: false }
+          },
+          size: { value: 2.1, random: true, anim: { enable: false } },
+          line_linked: {
+            enable: true,
+            distance: 94,
+            color: '#3b82f6',
+            opacity: 0.27,
+            width: 1.05
+          },
+          move: {
+            enable: true,
+            speed: 0.95,
+            direction: 'none',
+            random: true,
+            straight: false,
+            out_mode: 'out',
+            bounce: false,
+            attract: { enable: true, rotateX: 600, rotateY: 1200 }
+          }
+        },
+        interactivity: {
+          detect_on: 'canvas',
+          events: {
+            onhover: { enable: true, mode: 'grab' },
+            onclick: { enable: true, mode: 'push' },
+            resize: true
+          },
+          modes: {
+            grab: { distance: 150, line_linked: { opacity: 0.68 } },
+            push: { particles_nb: 3 }
+          }
+        },
+        retina_detect: true
+      });
+
+      const getParticleInstance = () => (window.pJSDom || [])
+        .map((entry) => entry.pJS)
+        .find((instance) => instance && instance.canvas && mesh.contains(instance.canvas.el));
+
+      let particlesBeforeClick = null;
+
+      mesh.addEventListener('pointerdown', () => {
+        const instance = getParticleInstance();
+        if (instance && instance.particles && instance.particles.array) {
+          particlesBeforeClick = new Set(instance.particles.array);
+        }
+      });
+
+      mesh.addEventListener('click', () => {
+        const instance = getParticleInstance();
+        if (!instance || !instance.particles || !instance.particles.array || !particlesBeforeClick) return;
+        const introducedParticles = instance.particles.array.filter(
+          (particle) => !particlesBeforeClick.has(particle)
+        );
+        particlesBeforeClick = null;
+
+        introducedParticles.forEach((particle) => {
+          window.setTimeout(() => {
+            const particleIndex = instance.particles.array.indexOf(particle);
+            if (particleIndex !== -1) instance.particles.array.splice(particleIndex, 1);
+          }, 15000);
+        });
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeJarvisWorkParticles, { once: true });
+    } else {
+      initializeJarvisWorkParticles();
+    }
+  })();
+</script>

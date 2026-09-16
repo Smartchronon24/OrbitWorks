@@ -1,0 +1,207 @@
+---
+---
+<div class="quiet-space-wrap" aria-hidden="true">
+  <canvas id="quiet-space-canvas"></canvas>
+</div>
+
+<style>
+  .quiet-space-wrap {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    /* z-index: -1 so it sits behind all normal document flow */
+    z-index: -1;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    /* Full opacity — we control visibility via particle alpha in JS */
+    opacity: 1;
+  }
+</style>
+
+<script>
+  (function () {
+    const canvas = document.getElementById('quiet-space-canvas') as HTMLCanvasElement | null;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // Detect touch; use pointer coarse as a better signal than viewport width
+    const isTouchDevice = window.matchMedia('(pointer: coarse)').matches || !window.matchMedia('(hover: hover)').matches;
+
+    let W = 0;
+    let H = 0;
+    let dpr = 1;
+
+    interface Particle {
+      ox: number; oy: number;
+      x: number; y: number;
+      vx: number; vy: number;
+      size: number;
+      phase: number;
+      alpha: number; // individual star brightness variation
+    }
+
+    let particles: Particle[] = [];
+    const mouse = { x: -9999, y: -9999 };
+    const targetMouse = { x: -9999, y: -9999 };
+
+    function resize() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = window.innerWidth;
+      H = window.innerHeight;
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.scale(dpr, dpr);
+    }
+
+    function createParticles() {
+      particles = [];
+      // Density: ~1 particle per 8000px² on desktop, more sparse on touch
+      const density = isTouchDevice ? 12000 : 8000;
+      const count = Math.floor((W * H) / density);
+      for (let i = 0; i < count; i++) {
+        const ox = Math.random() * W;
+        const oy = Math.random() * H;
+        particles.push({
+          ox, oy,
+          x: ox, y: oy,
+          vx: 0, vy: 0,
+          size: Math.random() * 1.4 + 0.5,
+          phase: Math.random() * Math.PI * 2,
+          // Vary per-star brightness so field feels natural, not uniform
+          // Increased base opacity from previous values
+          alpha: Math.random() * 0.45 + 0.45,
+        });
+      }
+    }
+
+    function isDark(): boolean {
+      const theme = document.documentElement.getAttribute('data-theme');
+      if (theme === 'dark') return true;
+      if (theme === 'light') return false;
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+
+    function frame() {
+      requestAnimationFrame(frame);
+      ctx.clearRect(0, 0, W, H);
+
+      const dark = isDark();
+      // Smooth mouse tracking (only meaningful on non-touch)
+      mouse.x += (targetMouse.x - mouse.x) * 0.09;
+      mouse.y += (targetMouse.y - mouse.y) * 0.09;
+
+      const t = performance.now() * 0.00045;
+
+      for (const p of particles) {
+        if (!prefersReducedMotion) {
+          // Very gentle ambient drift (slow, tiny) on both desktop and touch devices
+          p.ox += Math.sin(t + p.phase) * 0.05;
+          p.oy += Math.cos(t * 0.65 + p.phase) * 0.05;
+
+          if (!isTouchDevice) {
+            // Cursor repulsion is only available where a mouse exists.
+            const dx = p.x - mouse.x;
+            const dy = p.y - mouse.y;
+            const distSq = dx * dx + dy * dy;
+            const R = 520;
+            if (distSq < R * R && distSq > 0) {
+              const dist = Math.sqrt(distSq);
+              const force = ((R - dist) / R) * 0.05;
+              p.vx += (dx / dist) * force;
+              p.vy += (dy / dist) * force;
+            }
+          }
+
+          // Spring back toward origin
+          p.vx += (p.ox - p.x) * 0.014;
+          p.vy += (p.oy - p.y) * 0.014;
+
+          // Friction
+          p.vx *= 0.86;
+          p.vy *= 0.86;
+
+          p.x += p.vx;
+          p.y += p.vy;
+        } else {
+          p.x = p.ox;
+          p.y = p.oy;
+        }
+
+        // Per-particle color: dark mode = soft white stars, light mode = black
+        if (dark) {
+          ctx.fillStyle = `rgba(210, 220, 235, ${p.alpha})`;
+        } else {
+          ctx.fillStyle = `rgba(0, 0, 0, ${p.alpha})`;
+        }
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Faint connection lines near cursor — desktop, non-reduced-motion only
+      if (!prefersReducedMotion && !isTouchDevice && mouse.x < W + 100) {
+        // Collect particles near cursor (increased collection radius by 2x)
+        const near: Particle[] = [];
+        for (const p of particles) {
+          const dx = mouse.x - p.x;
+          const dy = mouse.y - p.y;
+          if (dx * dx + dy * dy < 200 * 200) near.push(p);
+        }
+
+        const lineColor = dark ? '210, 220, 235' : '0, 0, 0';
+        ctx.lineWidth = 0.5;
+
+        for (let i = 0; i < near.length; i++) {
+          for (let j = i + 1; j < near.length; j++) {
+            const dx = near[i].x - near[j].x;
+            const dy = near[i].y - near[j].y;
+            const d = Math.sqrt(dx * dx + dy * dy);
+            // Increased line connection distance logic slightly for wider field
+            if (d < 80) {
+              // Line alpha: fade with distance, keep very faint overall
+              const a = (1 - d / 80) * 0.25;
+              ctx.strokeStyle = `rgba(${lineColor}, ${a})`;
+              ctx.beginPath();
+              ctx.moveTo(near[i].x, near[i].y);
+              ctx.lineTo(near[j].x, near[j].y);
+              ctx.stroke();
+            }
+          }
+        }
+      }
+    }
+
+    // Event bindings
+    window.addEventListener('resize', () => {
+      resize();
+      createParticles();
+    });
+
+    if (!isTouchDevice) {
+      window.addEventListener('mousemove', (e: MouseEvent) => {
+        targetMouse.x = e.clientX;
+        targetMouse.y = e.clientY;
+      });
+      // Reset mouse when it leaves the window
+      document.documentElement.addEventListener('mouseleave', () => {
+        targetMouse.x = -9999;
+        targetMouse.y = -9999;
+      });
+    }
+
+    resize();
+    createParticles();
+    frame();
+  })();
+</script>

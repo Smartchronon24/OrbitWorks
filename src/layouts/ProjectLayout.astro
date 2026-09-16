@@ -1,0 +1,780 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import Badge from '../components/primitives/Badge.astro';
+
+interface Link {
+  label: string;
+  href: string;
+}
+
+interface ProjectData {
+  title: string;
+  shortDescription: string;
+  status?: string;
+  dates?: string;
+  technologies?: string[];
+  archFlow?: string[];
+  links?: Record<string, string>;
+  overview?: string;
+  problem?: string;
+  whatWasBuilt?: string;
+  architecture?: string;
+  implementationDetails?: string;
+  challenges?: string;
+  decisions?: string;
+  tradeoffs?: string;
+  results?: string;
+  metrics?: string;
+  futureWork?: string;
+}
+
+interface AdjacentProject {
+  id: string;
+  title: string;
+}
+
+interface Props {
+  project: { data: ProjectData; id: string };
+  prev?: AdjacentProject;
+  next?: AdjacentProject;
+}
+
+const { project, prev, next } = Astro.props;
+const d = project.data;
+
+// Build links array for display
+const linkEntries: Link[] = d.links
+  ? Object.entries(d.links).map(([label, href]) => ({ label, href }))
+  : [];
+
+// Determine status display class
+const statusClass = d.status
+  ? `status-${d.status.toLowerCase().replace(/\s+/g, '-')}`
+  : '';
+---
+<BaseLayout title={`${d.title} — Navaneth Anand`}>
+  <article class="project-case-study">
+
+    <!-- ── Back link ── -->
+    <nav class="project-back" aria-label="Project navigation">
+      <a href="/projects" class="back-link">← All Projects</a>
+    </nav>
+
+    <!-- ── Header ── -->
+    <header class="cs-header reveal">
+      <div class="cs-header-top">
+        {d.status && (
+          <span class={`cs-status ${statusClass}`}>{d.status}</span>
+        )}
+        {d.dates && (
+          <span class="cs-dates">{d.dates}</span>
+        )}
+      </div>
+
+      <h1 class="cs-title">{d.title}</h1>
+      <p class="cs-lead">{d.shortDescription}</p>
+
+      {d.technologies && d.technologies.length > 0 && (
+        <div class="cs-tech" aria-label="Technologies">
+          {d.technologies.map((t: string) => <Badge text={t} />)}
+        </div>
+      )}
+
+      {linkEntries.length > 0 && (
+        <div class="cs-links" aria-label="Project links">
+          {linkEntries.map(({ label, href }) => (
+            <a href={href} target="_blank" rel="noopener noreferrer" class="cs-link">
+              {label} ↗
+            </a>
+          ))}
+        </div>
+      )}
+
+      {d.heroImage && (
+        <div class="cs-hero-image reveal">
+          <img src={d.heroImage} alt={`${d.title} preview`} loading="eager" />
+        </div>
+      )}
+    </header>
+
+    <!-- ── Structured sections (from frontmatter) ── -->
+    <div class="cs-body">
+
+      {(d.overview || d.problem || d.whatWasBuilt) && (
+        <section class="cs-section reveal">
+          <div class="section-kicker">Project Snapshot</div>
+          <div class="story-grid">
+            {d.overview && (
+              <article class="story-card">
+                <h3>Overview</h3>
+                <p>{d.overview}</p>
+              </article>
+            )}
+            {d.problem && (
+              <article class="story-card">
+                <h3>Problem</h3>
+                <p>{d.problem}</p>
+              </article>
+            )}
+            {d.whatWasBuilt && (
+              <article class="story-card">
+                <h3>What Was Built</h3>
+                <p>{d.whatWasBuilt}</p>
+              </article>
+            )}
+          </div>
+        </section>
+      )}
+
+      <!-- Architecture flow diagram (from archFlow array) -->
+      {(d.archFlow && d.archFlow.length > 0) || d.architecture || d.diagramImage ? (
+        <section class="cs-section reveal">
+          <div class="section-kicker">System</div>
+          <h2>Architecture</h2>
+          {d.architecture && <p class="cs-arch-desc">{d.architecture}</p>}
+          {d.diagramImage && (
+            <div class="cs-diagram-image">
+              <img src={d.diagramImage} alt={`${d.title} architecture diagram`} loading="lazy" />
+            </div>
+          )}
+          {d.archFlow && d.archFlow.length > 0 && (
+            <div class="arch-flow" role="list" aria-label="Architecture flow">
+              {d.archFlow.map((step: string, i: number) => (
+                <div class="arch-flow-item" role="listitem">
+                  <div class="arch-node">{step}</div>
+                  {i < (d.archFlow?.length ?? 0) - 1 && (
+                    <div class="arch-arrow" aria-hidden="true">↓</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      ) : null}
+
+      <!-- Architecture description without flow (text only) -->
+      {!d.archFlow && d.architecture && (
+        <section class="cs-section reveal">
+          <div class="section-kicker">System</div>
+          <h2>Architecture</h2>
+          <p>{d.architecture}</p>
+        </section>
+      )}
+
+      {(d.implementationDetails || d.challenges || d.decisions || d.tradeoffs) && (
+        <section class="cs-section reveal">
+          <div class="section-kicker">Engineering</div>
+          <h2>Implementation & Decisions</h2>
+          <div class="info-card-grid">
+            {d.implementationDetails && (
+              <article class="info-card">
+                <h3>Implementation</h3>
+                <p>{d.implementationDetails}</p>
+              </article>
+            )}
+            {d.challenges && (
+              <article class="info-card">
+                <h3>Challenges</h3>
+                <p>{d.challenges}</p>
+              </article>
+            )}
+            {d.decisions && (
+              <article class="info-card">
+                <h3>Key Decisions</h3>
+                <p>{d.decisions}</p>
+              </article>
+            )}
+            {d.tradeoffs && (
+              <article class="info-card info-card--wide">
+                <h3>Trade-offs</h3>
+                <p>{d.tradeoffs}</p>
+              </article>
+            )}
+          </div>
+        </section>
+      )}
+
+      {(d.results || d.metrics || d.futureWork) && (
+        <section class="cs-section reveal">
+          <div class="section-kicker">Evidence</div>
+          <h2>Results & Future Work</h2>
+          <div class="result-grid">
+            {d.results && (
+              <article class={`result-card ${project.id === 'claimeazy' ? 'result-card--wide' : ''}`}>
+                <h3>Outcome</h3>
+                <p>{d.results}</p>
+              </article>
+            )}
+            {d.metrics && (
+              <article class="result-card metric-card">
+                <h3>Metrics</h3>
+                <pre class="metrics-block">{d.metrics}</pre>
+              </article>
+            )}
+            {d.futureWork && (
+              <article class="result-card result-card--wide">
+                <h3>Future Work</h3>
+                <p>{d.futureWork}</p>
+              </article>
+            )}
+          </div>
+        </section>
+      )}
+
+      <!-- ── Long-form Markdown body ── -->
+      <div class="cs-markdown">
+        <slot />
+      </div>
+
+    </div>
+
+    <!-- ── Project navigation ── -->
+    <nav class="project-nav" aria-label="Between projects">
+      <div class="pnav-inner">
+        {prev ? (
+          <a href={`/projects/${prev.id}`} class="pnav-link pnav-prev">
+            <span class="pnav-dir">← Previous</span>
+            <span class="pnav-title">{prev.title}</span>
+          </a>
+        ) : <span />}
+
+        <a href="/projects" class="pnav-all">All Projects</a>
+
+        {next ? (
+          <a href={`/projects/${next.id}`} class="pnav-link pnav-next">
+            <span class="pnav-dir">Next →</span>
+            <span class="pnav-title">{next.title}</span>
+          </a>
+        ) : <span />}
+      </div>
+    </nav>
+
+  </article>
+</BaseLayout>
+
+<style>
+  /* ── Layout ── */
+  .project-case-study {
+    max-width: 860px;
+    margin: 0 auto;
+    padding-bottom: var(--space-12);
+  }
+
+  /* ── Back link ── */
+  .project-back {
+    margin-bottom: var(--space-6);
+    display: flex;
+    justify-content: center;
+  }
+  .back-link {
+    font-size: var(--text-sm);
+    font-family: var(--font-mono);
+    color: var(--color-text-muted);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+    letter-spacing: 0.04em;
+  }
+  .back-link:hover { color: var(--color-accent); }
+
+  /* ── Header ── */
+  .cs-header {
+    padding-bottom: var(--space-6);
+    margin-bottom: var(--space-8);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .cs-hero-image,
+  .cs-diagram-image {
+    margin-top: var(--space-6);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    background-color: var(--color-surface);
+    width: 100%;
+    text-align: center;
+  }
+
+  .cs-hero-image img,
+  .cs-diagram-image img {
+    max-width: 100%;
+    height: auto;
+    display: inline-block;
+    object-fit: cover;
+  }
+
+  .cs-header-top {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+    flex-wrap: wrap;
+  }
+
+  .cs-status {
+    font-size: var(--text-xs);
+    font-family: var(--font-mono);
+    letter-spacing: 0.1em;
+    padding: 2px 10px;
+    border-radius: 9999px;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+  }
+  .cs-status.status-active {
+    color: var(--color-accent);
+    border-color: var(--color-accent-subtle);
+    background-color: var(--color-accent-subtle);
+  }
+  .cs-status.status-completed {
+    color: var(--color-text-muted);
+    border-color: var(--color-border);
+  }
+  .cs-status.status-experimental {
+    color: var(--color-text-muted);
+    font-style: italic;
+  }
+
+  .cs-dates {
+    font-size: var(--text-xs);
+    font-family: var(--font-mono);
+    color: var(--color-text-muted);
+    letter-spacing: 0.04em;
+  }
+
+  .cs-title {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin: 0 0 var(--space-3) 0;
+    text-align: center;
+  }
+
+  .cs-lead {
+    font-size: var(--text-lg);
+    color: var(--color-text-secondary);
+    margin: 0 auto var(--space-4) auto;
+    line-height: 1.55;
+    text-align: center;
+    max-width: 720px;
+  }
+
+  .cs-tech {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-1);
+    margin-bottom: var(--space-4);
+  }
+
+  .cs-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-3);
+    margin-top: var(--space-2);
+  }
+  .cs-link {
+    font-size: var(--text-sm);
+    color: var(--color-accent);
+    text-decoration: none;
+    transition: opacity var(--transition-fast);
+  }
+  .cs-link:hover { opacity: 0.75; }
+
+  .section-kicker {
+    margin: 0 0 var(--space-3) 0;
+    font-size: var(--text-xs);
+    font-family: var(--font-mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  .story-grid,
+  .info-card-grid,
+  .result-grid {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .story-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .story-card,
+  .info-card,
+  .result-card {
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    padding: var(--space-4);
+    min-height: 100%;
+  }
+
+  .info-card--wide,
+  .result-card--wide {
+    grid-column: 1 / -1;
+  }
+
+  .story-card h3,
+  .info-card h3,
+  .result-card h3 {
+    font-size: var(--text-sm);
+    font-family: var(--font-mono);
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 0 0 var(--space-2) 0;
+  }
+
+  .story-card p,
+  .info-card p,
+  .result-card p {
+    margin: 0;
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    font-size: var(--text-base);
+  }
+
+  .info-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .info-card-grid .info-card:first-child:last-child,
+  .info-card-grid .info-card:nth-child(1):nth-last-child(2),
+  .info-card-grid .info-card:nth-child(2):last-child {
+    grid-column: span 1;
+  }
+
+  .result-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .metric-card {
+    grid-column: span 1;
+  }
+
+  .info-card--wide,
+  .result-card--wide {
+    grid-column: 1 / -1;
+  }
+
+  .metric-card .metrics-block {
+    margin-top: var(--space-2);
+  }
+
+  /* ── Case study body sections ── */
+  .cs-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+
+  .cs-section:first-child {
+    border-top: none;
+    padding-top: 0;
+  }
+
+  .cs-section {
+    border-top: 1px solid var(--color-border);
+    padding-top: var(--space-6);
+  }
+
+  .cs-section h2 {
+    font-size: var(--text-xs);
+    font-family: var(--font-mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    margin: 0 0 var(--space-3) 0;
+    font-weight: 500;
+  }
+
+  .cs-section p {
+    font-size: var(--text-base);
+    color: var(--color-text-secondary);
+    line-height: 1.75;
+    margin: 0 0 var(--space-3) 0;
+  }
+  .cs-section p:last-child { margin-bottom: 0; }
+
+  .cs-arch-desc {
+    margin-bottom: var(--space-4) !important;
+  }
+
+  .cs-tradeoffs {
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--color-border);
+  }
+
+  /* ── Architecture flow diagram ── */
+  .arch-flow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    margin-top: var(--space-4);
+    width: 100%;
+  }
+
+  .arch-flow-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+
+  .arch-node {
+    font-size: var(--text-sm);
+    font-family: var(--font-mono);
+    padding: 10px 20px;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background-color: var(--color-surface);
+    color: var(--color-text-primary);
+    min-width: 220px;
+    max-width: min(100%, 520px);
+    line-height: 1.4;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .arch-arrow {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+    padding: 4px 20px;
+    opacity: 0.6;
+    line-height: 1;
+  }
+
+  /* ── Metrics ── */
+  .cs-metrics {
+    margin-top: var(--space-3);
+  }
+  .metrics-block {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    padding: var(--space-4);
+    white-space: pre-wrap;
+    overflow-x: auto;
+    margin: 0;
+    line-height: 1.7;
+  }
+
+  /* ── Long-form Markdown slot ── */
+  .cs-markdown {
+    border-top: 1px solid var(--color-border);
+    padding-top: var(--space-6);
+  }
+
+  /* Only render if there's actual content */
+  .cs-markdown:empty { display: none; }
+
+  .cs-markdown h2 {
+    font-size: var(--text-xs);
+    font-family: var(--font-mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    margin: var(--space-6) 0 var(--space-3) 0;
+    font-weight: 500;
+  }
+
+  .cs-markdown h3 {
+    font-size: var(--text-base);
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: var(--space-5) 0 var(--space-2) 0;
+  }
+
+  .cs-markdown .role-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-3);
+    margin: var(--space-4) 0 var(--space-5);
+  }
+
+  .cs-markdown .role-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background: var(--color-surface);
+  }
+
+  .cs-markdown .role-card strong {
+    color: var(--color-text-primary);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.08em;
+  }
+
+  .cs-markdown .role-card span {
+    color: var(--color-text-secondary);
+    font-size: var(--text-sm);
+    line-height: 1.5;
+  }
+
+  .cs-markdown p {
+    font-size: var(--text-base);
+    color: var(--color-text-secondary);
+    line-height: 1.75;
+    margin: 0 0 var(--space-3) 0;
+  }
+
+  .cs-markdown ul,
+  .cs-markdown ol {
+    padding-left: var(--space-4);
+    color: var(--color-text-secondary);
+    font-size: var(--text-base);
+    line-height: 1.75;
+    margin: 0 0 var(--space-3) 0;
+  }
+
+  .cs-markdown li { margin-bottom: var(--space-1); }
+
+  .cs-markdown code {
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: var(--color-text-primary);
+  }
+
+  .cs-markdown pre {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    padding: var(--space-4);
+    overflow-x: auto;
+    margin: 0 0 var(--space-4) 0;
+  }
+
+  .cs-markdown pre code {
+    border: none;
+    background: none;
+    padding: 0;
+    font-size: var(--text-sm);
+    line-height: 1.65;
+  }
+
+  .cs-markdown strong {
+    color: var(--color-text-primary);
+    font-weight: 600;
+  }
+
+  .cs-markdown blockquote {
+    border-left: 2px solid var(--color-accent);
+    padding-left: var(--space-4);
+    margin: var(--space-4) 0;
+    color: var(--color-text-muted);
+    font-style: italic;
+  }
+
+  .cs-markdown hr {
+    border: none;
+    border-top: 1px solid var(--color-border);
+    margin: var(--space-6) 0;
+  }
+
+  /* ── Project navigation ── */
+  .project-nav {
+    margin-top: var(--space-12);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .pnav-inner {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: var(--space-4);
+    align-items: center;
+  }
+
+  .pnav-link {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-decoration: none;
+    color: inherit;
+    transition: color var(--transition-fast);
+  }
+  .pnav-link:hover { color: var(--color-accent); }
+
+  .pnav-prev { align-items: flex-start; }
+  .pnav-next { align-items: flex-end; text-align: right; }
+
+  .pnav-dir {
+    font-size: var(--text-xs);
+    font-family: var(--font-mono);
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+  }
+
+  .pnav-title {
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--color-text-primary);
+    transition: color var(--transition-fast);
+  }
+  .pnav-link:hover .pnav-title { color: var(--color-accent); }
+
+  .pnav-all {
+    font-size: var(--text-sm);
+    font-family: var(--font-mono);
+    color: var(--color-text-muted);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color var(--transition-fast);
+    justify-self: center;
+  }
+  .pnav-all:hover { color: var(--color-accent); }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .story-grid,
+    .result-grid,
+    .info-card-grid,
+    .cs-markdown .role-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .project-case-study { padding-bottom: var(--space-8); }
+
+    .story-grid,
+    .info-card-grid,
+    .result-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .arch-node { min-width: unset; width: 100%; }
+
+    .pnav-inner {
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto auto;
+    }
+    .pnav-all {
+      grid-column: 1 / -1;
+      justify-self: center;
+      order: -1;
+      margin-bottom: var(--space-2);
+    }
+    .pnav-prev { order: 1; }
+    .pnav-next { order: 2; }
+  }
+</style>

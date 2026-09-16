@@ -1,0 +1,42 @@
+<section class="skills-architecture" id="technical-toolkit">
+  <h2 class="section-title">Skill Kit</h2>
+  <p class="architecture-intro">A layered view of the tools and systems that support my work.</p>
+  <div class="architecture-flow" aria-label="Technical skills layered architecture">
+    <article class="architecture-layer architecture-layer--apex">
+      <div class="layer-heading"><div class="layer-title"><span class="layer-number">04</span><h3>AI &amp; Machine Learning Layer</h3></div><p>Apex</p></div>
+      <div class="skill-list"><span>Ollama</span><span>MCP</span><span>Agentic AI</span><span>Multi-Agent</span><span>OpenClaw</span><span>TensorFlow</span><span>Keras</span><span>Deep Learning</span><span>Neural Networks</span></div>
+    </article>
+    <article class="architecture-layer architecture-layer--infra">
+      <div class="layer-heading"><div class="layer-title"><span class="layer-number">03</span><h3>Cloud &amp; Big Data Storage Layer</h3></div><p>Infrastructure Engine</p></div>
+      <div class="skill-list"><span>Azure (ADF, ADLS, Functions, Graph API)</span><span>Oracle</span><span>PostgreSQL</span><span>MySQL</span><span>MongoDB</span><span>Hadoop</span><span>SQOOP</span><span>Apache Hive</span><span>Kafka</span></div>
+    </article>
+    <article class="architecture-layer architecture-layer--processing">
+      <div class="layer-heading"><div class="layer-title"><span class="layer-number">02</span><h3>Core Processing &amp; Scripting Layer</h3></div><p>Central Engine</p></div>
+      <div class="skill-list"><span>Python</span><span>Pandas</span><span>Flask</span><span>PySpark</span><span>SQL</span><span>Java</span><span>Kotlin</span><span>JSON</span><span>Docling</span><span>FastMCP</span><span>Selenium</span><span>BS4</span><span>OpenCV</span></div>
+    </article>
+    <article class="architecture-layer architecture-layer--foundation">
+      <div class="layer-heading"><div class="layer-title"><span class="layer-number">01</span><h3>Developer Tooling &amp; Workflow Workspace</h3></div><p>Foundation</p></div>
+      <div class="skill-list"><span>VS Code</span><span>GitHub</span><span>Android Studio</span><span>NGROK</span><span>Docker</span><span>IntelliJ</span><span>Claude Code</span><span>Copilot</span></div>
+    </article>
+  </div>
+</section>
+
+<style>
+  .skills-architecture { margin: var(--space-12) 0; text-align: center; }
+  .skills-architecture .section-title { margin-bottom: var(--space-3); }
+  .architecture-intro { margin: calc(var(--space-2) * -1) 0 var(--space-6); color: var(--color-text-secondary); font-size: var(--text-sm); }
+  .architecture-flow { display: flex; flex-direction: column; gap: var(--space-3); text-align: left; }
+  .architecture-layer { position: relative; padding: var(--space-5); border: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent); border-radius: 12px; background: linear-gradient(135deg, color-mix(in srgb, var(--color-surface) 86%, var(--color-accent) 14%), color-mix(in srgb, var(--color-surface) 96%, transparent)); box-shadow: 0 10px 24px color-mix(in srgb, var(--color-text-primary) 6%, transparent); }
+  .architecture-layer:not(:last-child)::after { content: ''; position: absolute; left: 50%; bottom: -1.55rem; width: 2px; height: 1.5rem; background: linear-gradient(to bottom, var(--color-accent), color-mix(in srgb, var(--color-accent) 35%, transparent)); animation: flow-pulse 2s ease-in-out infinite; z-index: 1; }
+  .architecture-layer:not(:last-child)::before { content: ''; position: absolute; left: calc(50% - 3px); bottom: -1.7rem; width: 6px; height: 6px; border-radius: 50%; background: var(--color-accent); z-index: 2; }
+  .layer-heading { display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: var(--space-3); padding-bottom: var(--space-3); margin-bottom: var(--space-4); border-bottom: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent); }
+  .layer-title { display: flex; align-items: center; gap: var(--space-3); }
+  .layer-number { display: inline-flex; align-items: center; justify-content: center; min-width: 2rem; height: 1.5rem; border-radius: 999px; background: color-mix(in srgb, var(--color-accent) 14%, transparent); color: var(--color-accent); font-family: var(--font-mono); font-size: var(--text-xs); }
+  h3 { margin: 0; color: var(--color-text-primary); font-size: var(--text-base); }
+  .layer-heading p { margin: 0; color: var(--color-text-muted); font-family: var(--font-mono); font-size: var(--text-xs); text-align: right; }
+  .skill-list { display: flex; flex-wrap: wrap; gap: var(--space-2); color: var(--color-text-secondary); font-size: var(--text-xs); line-height: 1.4; }
+  .skill-list span { padding: var(--space-1) var(--space-3); border-radius: 999px; background: color-mix(in srgb, var(--color-surface) 90%, white 10%); border: 1px solid color-mix(in srgb, var(--color-border) 65%, transparent); box-shadow: 0 2px 8px color-mix(in srgb, var(--color-text-primary) 7%, transparent); }
+  @keyframes flow-pulse { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .architecture-layer:not(:last-child)::after { animation: none; } }
+  @media (max-width: 600px) { .layer-heading { align-items: flex-start; } .layer-heading p { max-width: 7rem; } }
+</style>

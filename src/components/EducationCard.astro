@@ -1,0 +1,42 @@
+---
+import { education } from '../data/education';
+---
+<section class="education-section" id="education">
+  <h2 class="section-title">Education</h2>
+  <div class="education-card">
+    {education.map(edu => (
+      <div class="edu-item" key={edu.institution}>
+        <div class="edu-header">
+          <h3 class="edu-degree">{edu.degree}</h3>
+          <p class="edu-inst">{edu.institution}</p>
+        </div>
+        <div class="edu-body">
+          <div class="edu-meta">
+            <span class="edu-dates">{edu.dates}</span>
+          </div>
+        </div>
+        <div class="edu-score">
+          {edu.details && edu.details.map(det => (
+            <span class="edu-detail" key={det}>{det}</span>
+          ))}
+        </div>
+      </div>
+    ))}
+  </div>
+</section>
+
+<style>
+  .education-section { width: 100%; margin: var(--space-12) 0; text-align: left; }
+  .education-section .section-title { width: 100%; margin: 0 auto var(--space-8); text-align: center; }
+  .education-card { display: grid; gap: var(--space-3); }
+  .edu-item { background: color-mix(in srgb, var(--color-surface) 90%, var(--color-accent) 10%); border: 1px solid var(--color-border); border-radius: 12px; padding: var(--space-5); display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(170px, 1fr) auto; gap: var(--space-5); align-items: center; }
+  .edu-header { display: flex; flex-direction: column; gap: var(--space-1); }
+  .edu-degree { font-size: var(--text-base); font-weight: 600; color: var(--color-text-primary); margin: 0; }
+  .edu-inst { font-size: var(--text-sm); color: var(--color-accent); margin: 0; }
+  .edu-body { margin: 0; }
+  .edu-meta { font-size: var(--text-xs); font-family: var(--font-mono); color: var(--color-text-muted); display: flex; flex-direction: column; gap: var(--space-1); }
+  .edu-dates { font-weight: 500; }
+  .edu-score { color: var(--color-text-primary); font-family: var(--font-mono); font-size: var(--text-xs); text-align: right; }
+  .edu-detail { color: var(--color-text-primary); }
+  @media (max-width: 600px) { .edu-item { grid-template-columns: 1fr; gap: var(--space-2); } .edu-score { text-align: left; } }
+</style>

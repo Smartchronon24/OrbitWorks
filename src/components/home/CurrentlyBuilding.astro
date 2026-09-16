@@ -1,0 +1,297 @@
+---
+import Button from '../primitives/Button.astro';
+import { getEntry } from 'astro:content';
+
+// Fetch the Jarvis project directly from the content collection
+const jarvis = await getEntry('projects', 'jarvis');
+---
+<section class="currently-building reveal">
+  <div class="cb-header">
+    <p class="cb-eyebrow">CURRENTLY BUILDING</p>
+  </div>
+
+  {jarvis && (
+    <div class="cb-card">
+      <div class="cb-status">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span class="status-label">Active · Personal Research</span>
+      </div>
+
+      <div class="cb-content">
+        <div class="cb-main">
+          <h2 class="cb-title">{jarvis.data.title}</h2>
+          <p class="cb-desc">{jarvis.data.shortDescription}</p>
+          <p class="cb-detail">
+            An ongoing personal exploration into agentic AI systems, tool orchestration,
+            and autonomous task execution.
+          </p>
+          <Button href={`/projects/${jarvis.id}`} variant="outline">Explore Project →</Button>
+        </div>
+
+        <div class="cb-meta">
+          <div
+            id="jarvis-particles-mesh"
+            class="jarvis-particles-mesh"
+            role="img"
+            aria-label="Interactive particle constellation representing the Jarvis architecture"
+          ></div>
+        </div>
+      </div>
+    </div>
+  )}
+</section>
+
+<style>
+  .currently-building {
+    padding: var(--space-12) 0;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .cb-eyebrow {
+    font-size: var(--text-xs);
+    font-family: var(--font-mono);
+    letter-spacing: 0.14em;
+    color: var(--color-text-muted);
+    margin: 0 0 var(--space-5) 0;
+  }
+
+  .cb-card {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: var(--space-6);
+    isolation: isolate;
+  }
+
+  .cb-status {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-5);
+    pointer-events: none;
+  }
+
+  .status-dot {
+    display: block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background-color: var(--color-accent);
+    animation: pulse 2.5s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .status-dot { animation: none; }
+  }
+
+  .status-label {
+    font-size: var(--text-xs);
+    font-family: var(--font-mono);
+    letter-spacing: 0.08em;
+    color: var(--color-accent);
+  }
+
+  .cb-content {
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: center;
+    pointer-events: none;
+  }
+
+  .cb-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background: radial-gradient(circle at 82% 50%, color-mix(in srgb, var(--color-accent) 8%, transparent), transparent 45%);
+  }
+
+  .cb-title {
+    font-size: var(--text-2xl);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin: 0 0 var(--space-2) 0;
+  }
+
+  .cb-desc {
+    font-size: var(--text-base);
+    color: var(--color-text-secondary);
+    margin: 0 0 var(--space-3) 0;
+  }
+
+  .cb-detail {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+    margin: 0 0 var(--space-5) 0;
+    line-height: 1.6;
+    max-width: 480px;
+  }
+
+  .cb-meta {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: transparent;
+    pointer-events: auto;
+  }
+
+  .jarvis-particles-mesh,
+  .jarvis-particles-mesh canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .jarvis-particles-mesh {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: auto;
+  }
+
+  .jarvis-particles-mesh canvas {
+    image-rendering: auto;
+    transform: translateZ(0);
+    will-change: contents;
+  }
+
+  .cb-main {
+    position: relative;
+    z-index: 3;
+    max-width: 620px;
+    pointer-events: none;
+  }
+
+  .cb-main a {
+    pointer-events: auto;
+  }
+
+  @media (max-width: 768px) {
+    .cb-card {
+      min-height: 360px;
+    }
+
+    .cb-content {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .currently-building { padding: var(--space-8) 0; }
+    .cb-card { padding: var(--space-4); }
+  }
+</style>
+
+<script is:inline src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+<script is:inline>
+  (function () {
+    function initializeJarvisParticles() {
+      if (typeof window.particlesJS !== 'function') return;
+
+      const mesh = document.getElementById('jarvis-particles-mesh');
+      if (!mesh || mesh.dataset.initialized === 'true') return;
+      mesh.dataset.initialized = 'true';
+
+      window.particlesJS('jarvis-particles-mesh', {
+        particles: {
+          number: {
+            value: 68,
+            density: { enable: true, value_area: 420 }
+          },
+          color: { value: '#3b82f6' },
+          shape: { type: 'circle' },
+          opacity: {
+            value: 0.6,
+            random: true,
+            anim: { enable: true, speed: 1, opacity_min: 0.2, sync: false }
+          },
+          size: {
+            value: 2.1,
+            random: true,
+            anim: { enable: false }
+          },
+          line_linked: {
+            enable: true,
+            distance: 94,
+            color: '#3b82f6',
+            opacity: 0.27,
+            width: 1.05
+          },
+          move: {
+            enable: true,
+            speed: 0.95,
+            direction: 'none',
+            random: true,
+            straight: false,
+            out_mode: 'out',
+            bounce: false,
+            attract: { enable: true, rotateX: 600, rotateY: 1200 }
+          }
+        },
+        interactivity: {
+          detect_on: 'canvas',
+          events: {
+            onhover: { enable: true, mode: 'grab' },
+            onclick: { enable: true, mode: 'push' },
+            resize: true
+          },
+          modes: {
+            grab: { distance: 150, line_linked: { opacity: 0.68 } },
+            push: { particles_nb: 3 }
+          }
+        },
+        retina_detect: true
+      });
+
+      const getParticleInstance = () => (window.pJSDom || [])
+        .map((entry) => entry.pJS)
+        .find((instance) => instance && instance.canvas && mesh.contains(instance.canvas.el));
+
+      let particlesBeforeClick = null;
+
+      mesh.addEventListener('pointerdown', () => {
+        const instance = getParticleInstance();
+        if (instance && instance.particles && instance.particles.array) {
+          particlesBeforeClick = new Set(instance.particles.array);
+        }
+      });
+
+      mesh.addEventListener('click', () => {
+        const instance = getParticleInstance();
+        if (!instance || !instance.particles || !instance.particles.array || !particlesBeforeClick) return;
+        const introducedParticles = instance.particles.array.filter(
+          (particle) => !particlesBeforeClick.has(particle)
+        );
+        particlesBeforeClick = null;
+
+        introducedParticles.forEach((particle) => {
+          window.setTimeout(() => {
+            const particleIndex = instance.particles.array.indexOf(particle);
+            if (particleIndex !== -1) instance.particles.array.splice(particleIndex, 1);
+          }, 15000);
+        });
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeJarvisParticles, { once: true });
+    } else {
+      initializeJarvisParticles();
+    }
+  })();
+</script>

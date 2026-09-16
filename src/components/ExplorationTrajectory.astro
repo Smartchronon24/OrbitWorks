@@ -1,0 +1,115 @@
+---
+---
+<section class="exploration-trajectory" id="currently-exploring"
+  aria-label="Currently Exploring">
+  <h2 class="section-title">Currently Exploring</h2>
+  <div class="exploration-track-wrap" role="list" aria-label="Current areas of exploration">
+    <div class="exploration-track">
+      <div class="node" role="listitem">Agentic AI
+        <div class="node-sub">Planning · Tools · Context</div>
+      </div>
+      <span class="arrow" aria-hidden="true">→</span>
+      <div class="node" role="listitem">MCP
+        <div class="node-sub">Standardised tool interfaces</div>
+      </div>
+      <span class="arrow" aria-hidden="true">→</span>
+      <div class="node" role="listitem">Local LLMs
+        <div class="node-sub">Ollama · Open‑weight models</div>
+      </div>
+      <span class="arrow" aria-hidden="true">→</span>
+      <div class="node" role="listitem">AI Engineering
+        <div class="node-sub">From prototype to production</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const wrap = document.querySelector('.exploration-track-wrap') as HTMLElement | null;
+  if (wrap) {
+    let direction = 1;
+    let isPaused = false;
+    let isDragging = false;
+    let pauseTimer: ReturnType<typeof setTimeout> | null = null;
+    let startX = 0;
+    let scrollLeft = 0;
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function pauseAtEnd(nextDirection: number) {
+      isPaused = true;
+      direction = nextDirection;
+      if (pauseTimer) clearTimeout(pauseTimer);
+      pauseTimer = setTimeout(() => {
+        if (!isDragging) isPaused = false;
+      }, 5000);
+    }
+
+    function autoScroll() {
+      if (!isPaused && !isDragging && !prefersReducedMotion) {
+        const maxScroll = wrap.scrollWidth - wrap.clientWidth;
+        if (maxScroll > 4) {
+          wrap.scrollLeft += 0.401 * direction;
+          if (direction === 1 && wrap.scrollLeft >= maxScroll - 2) {
+            wrap.scrollLeft = maxScroll;
+            pauseAtEnd(-1);
+          } else if (direction === -1 && wrap.scrollLeft <= 2) {
+            wrap.scrollLeft = 0;
+            pauseAtEnd(1);
+          }
+        }
+      }
+      requestAnimationFrame(autoScroll);
+    }
+
+    wrap.addEventListener('mouseenter', () => { isPaused = true; });
+    wrap.addEventListener('mouseleave', () => {
+      if (!isDragging && !pauseTimer) isPaused = false;
+    });
+    wrap.addEventListener('mousedown', (event: MouseEvent) => {
+      isDragging = true;
+      isPaused = true;
+      if (pauseTimer) clearTimeout(pauseTimer);
+      wrap.classList.add('is-dragging');
+      startX = event.pageX - wrap.offsetLeft;
+      scrollLeft = wrap.scrollLeft;
+    });
+    window.addEventListener('mouseup', () => {
+      if (isDragging) {
+        isDragging = false;
+        isPaused = false;
+        wrap.classList.remove('is-dragging');
+      }
+    });
+    window.addEventListener('mousemove', (event: MouseEvent) => {
+      if (!isDragging) return;
+      event.preventDefault();
+      const x = event.pageX - wrap.offsetLeft;
+      wrap.scrollLeft = scrollLeft - (x - startX) * 1.5;
+    });
+    wrap.addEventListener('touchstart', () => { isPaused = true; }, { passive: true });
+    wrap.addEventListener('touchend', () => { isPaused = false; }, { passive: true });
+    requestAnimationFrame(autoScroll);
+  }
+</script>
+
+<style>
+  .exploration-trajectory { margin-bottom: var(--space-10); }
+  .exploration-track-wrap {
+    overflow-x: auto;
+    overflow-y: visible;
+    padding-bottom: var(--space-3);
+    scrollbar-width: none;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .exploration-track-wrap::-webkit-scrollbar { display: none; }
+  .exploration-track-wrap.is-dragging { cursor: grabbing; }
+  .exploration-track { display: flex; align-items: center; justify-content: center; gap: var(--space-4); min-width: max-content; padding: var(--space-3) 0; }
+  .node { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 6px; padding: var(--space-3) var(--space-4); text-align: center; font-size: var(--text-sm); color: var(--color-text-primary); flex-shrink: 0; }
+  .node-sub { font-size: var(--text-xs); color: var(--color-text-muted); margin-top: var(--space-1); }
+  .arrow { font-size: var(--text-lg); color: var(--color-text-muted); flex-shrink: 0; }
+  @media (max-width: 600px) {
+    .exploration-track { justify-content: flex-start; }
+  }
+</style>
