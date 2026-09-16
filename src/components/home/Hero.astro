@@ -9,8 +9,8 @@ import { profile } from '../../data/profile';
     <p class="hero-areas" aria-hidden="true">GENAI &middot; AGENTS &middot; DATA &middot; SYSTEMS</p>
     <p class="hero-bio">{profile.bio}</p>
     <div class="hero-actions">
-      <Button href="/projects" variant="primary">Explore My Work</Button>
-      <Button href="/about" variant="outline">About</Button>
+      <Button href={Astro.base + 'projects'} variant="primary">Explore My Work</Button>
+      <Button href={Astro.base + 'about'} variant="outline">About</Button>
     </div>
   </div>
   <div class="hero-scroll" aria-hidden="true">

@@ -6,7 +6,7 @@ const isCurrent = (path: string) => currentPath === path || currentPath.startsWi
 ---
 <header class="navbar">
   <div class="container navbar-inner">
-    <a href="/" class="brand" aria-label="Home">
+    <a href={Astro.base} class="brand" aria-label="Home">
       <span class="name">NAVANETH ANAND</span>
       <span class="site-id">ORBIT WORKS</span>
     </a>
@@ -14,16 +14,16 @@ const isCurrent = (path: string) => currentPath === path || currentPath.startsWi
     <nav aria-label="Primary navigation">
       <ul class="nav-links">
         <li>
-          <a href="/projects" aria-current={isCurrent('/projects') ? 'page' : undefined}>Work</a>
+          <a href={Astro.base + 'projects'} aria-current={isCurrent('/projects') ? 'page' : undefined}>Work</a>
         </li>
         <li>
-          <a href="/experience" aria-current={isCurrent('/experience') ? 'page' : undefined}>Experience</a>
+          <a href={Astro.base + 'experience'} aria-current={isCurrent('/experience') ? 'page' : undefined}>Experience</a>
         </li>
         <li>
-          <a href="/about" aria-current={isCurrent('/about') ? 'page' : undefined}>About</a>
+          <a href={Astro.base + 'about'} aria-current={isCurrent('/about') ? 'page' : undefined}>About</a>
         </li>
         <li>
-          <a href="/resume" aria-current={isCurrent('/resume') ? 'page' : undefined}>Resume</a>
+          <a href={Astro.base + 'resume'} aria-current={isCurrent('/resume') ? 'page' : undefined}>Resume</a>
         </li>
       </ul>
     </nav>
