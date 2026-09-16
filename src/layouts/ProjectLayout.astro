@@ -57,7 +57,7 @@ const statusClass = d.status
 
     <!-- ── Back link ── -->
     <nav class="project-back" aria-label="Project navigation">
-      <a href={Astro.base + 'projects'} class="back-link">← All Projects</a>
+      <a href={`${Astro.base}projects`} class="back-link">← All Projects</a>
     </nav>
 
     <!-- ── Header ── -->
@@ -238,7 +238,7 @@ const statusClass = d.status
           </a>
         ) : <span />}
 
-        <a href={Astro.base + 'projects'} class="pnav-all">All Projects</a>
+        <a href={`${Astro.base}projects`} class="pnav-all">All Projects</a>
 
         {next ? (
           <a href={`/projects/${next.id}`} class="pnav-link pnav-next">

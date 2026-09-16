@@ -7,10 +7,10 @@ import Button from '../components/primitives/Button.astro';
     <header class="page-header reveal">
       <div class="header-left">
         <h1 class="page-title">Resume</h1>
-        <p class="page-lead">A concise professional overview. See <a href={Astro.base + 'projects'} class="inline-link">Work</a> for deeper context.</p>
+        <p class="page-lead">A concise professional overview. See <a href={`${Astro.base}projects`} class="inline-link">Work</a> for deeper context.</p>
       </div>
       <div class="header-right">
-        <Button href={Astro.base + 'resume.pdf'} variant="primary" class="download-btn">Open PDF</Button>
+        <Button href={`${Astro.base}resume.pdf`} variant="primary" class="download-btn">Open PDF</Button>
       </div>
     </header>
 
@@ -22,7 +22,7 @@ import Button from '../components/primitives/Button.astro';
       >
         <div class="pdf-fallback">
           <p>Your browser doesn't support inline PDFs.</p>
-          <Button href={Astro.base + 'resume.pdf'} variant="outline">Download Resume</Button>
+          <Button href={`${Astro.base}resume.pdf`} variant="outline">Download Resume</Button>
         </div>
       </object>
     </div>
