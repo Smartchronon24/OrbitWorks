@@ -28,7 +28,7 @@ const tier = () => 'major';
     <div class="pl-list">
       {projects.map((project, i) => (
         <a
-          href={`/projects/${project.id}`}
+          href={`/OrbitWorks/projects/${project.id}`}
           class={`pl-item pl-item--${tier(project.data.order)} reveal`}
           style={`transition-delay: ${i * 0.05}s`}
         >

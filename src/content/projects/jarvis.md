@@ -4,7 +4,7 @@ shortDescription: "A personal AI orchestration system for autonomous task execut
 status: "Active"
 dates: "2026"
 featured: true
-diagramImage: "/images/projects/jarvis-architecture.png"
+diagramImage: "/OrbitWorks/images/projects/jarvis-architecture.png"
 order: 1
 technologies: ["Python", "LLMs", "MCP", "Agentic AI", "Agentic Frameworks", "OpenClaw", "Oracle Cloud"]
 archFlow:
