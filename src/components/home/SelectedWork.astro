@@ -17,7 +17,7 @@ featured = featured.slice(0, 4);
 
   <div class="sw-grid">
     {featured.map((project, i) => (
-      <a href={`/projects/${project.id}`} class="sw-card">
+      <a href={`/OrbitWorks/projects/${project.id}`} class="sw-card">
         <span class="sw-index" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
         <h3 class="sw-title">{project.data.title}</h3>
         <p class="sw-desc">{project.data.shortDescription}</p>
