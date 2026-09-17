@@ -1,6 +1,8 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Button from '../components/primitives/Button.astro';
+
+const resumeUrl = `${import.meta.env.BASE_URL}resume.pdf`;
 ---
 <BaseLayout title="Resume — Navaneth Anand">
   <section class="resume-page">
@@ -10,19 +12,19 @@ import Button from '../components/primitives/Button.astro';
         <p class="page-lead">A concise professional overview. See <a href="/OrbitWorks/projects" class="inline-link">Work</a> for deeper context.</p>
       </div>
       <div class="header-right">
-        <Button href="/OrbitWorks/resume.pdf" variant="primary" class="download-btn">Open PDF</Button>
+        <Button href={resumeUrl} variant="primary" class="download-btn">Open PDF</Button>
       </div>
     </header>
 
     <div class="resume-viewer reveal" style="transition-delay: 0.1s;">
       <object
-        data="/resume.pdf"
+        data={resumeUrl}
         type="application/pdf"
         class="pdf-object"
       >
         <div class="pdf-fallback">
           <p>Your browser doesn't support inline PDFs.</p>
-          <Button href="/OrbitWorks/resume.pdf" variant="outline">Download Resume</Button>
+          <Button href={resumeUrl} variant="outline">Download Resume</Button>
         </div>
       </object>
     </div>
