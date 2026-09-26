@@ -1,6 +1,6 @@
 ---
 ---
-<div class="quiet-space-wrap" aria-hidden="true">
+<div class="quiet-space-wrap" aria-hidden="true" transition:persist="quiet-space">
   <canvas id="quiet-space-canvas"></canvas>
 </div>
 
@@ -32,6 +32,8 @@
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+    if (canvas.dataset.initialized === 'true') return;
+    canvas.dataset.initialized = 'true';
 
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     // Detect touch; use pointer coarse as a better signal than viewport width

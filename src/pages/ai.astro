@@ -1,0 +1,52 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="OrbitWorks-AI — Orbit Works" description="Ask OrbitWorks-AI about projects, experience, and technical work.">
+  <section class="ai-entry">
+    <p class="eyebrow">ENGINEERING WORKSPACE</p>
+    <h1>OrbitWorks-AI</h1>
+    <p>Explore Navaneth's projects, experience, and technical work with the portfolio assistant.</p>
+    <button
+      type="button"
+      data-ai-toggle
+      aria-controls="ai-workspace-panel"
+      aria-expanded="false"
+      aria-label="Open OrbitWorks-AI workspace"
+    >Open OrbitWorks-AI</button>
+  </section>
+</BaseLayout>
+
+<style>
+  .ai-entry {
+    max-width: 40rem;
+    margin: 0 auto;
+    padding: var(--space-8) 0;
+  }
+
+  .eyebrow {
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.14em;
+  }
+
+  .ai-entry > p:not(.eyebrow) {
+    color: var(--color-text-secondary);
+  }
+
+  .ai-entry button {
+    margin-top: var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: 5px;
+    background: var(--color-surface);
+    color: var(--color-text-primary);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .ai-entry button:hover {
+    background: var(--color-surface-hover);
+  }
+</style>

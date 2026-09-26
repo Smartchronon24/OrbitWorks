@@ -31,7 +31,14 @@ jobs:
         run: npm ci
 
       - name: Build site
-        run: npm run build
+        env:
+          PUBLIC_AI_API_URL: ${{ vars.PUBLIC_AI_API_URL }}
+        run: |
+          if [ -z "$PUBLIC_AI_API_URL" ]; then
+            echo "::error::Set the repository Actions variable PUBLIC_AI_API_URL to the deployed chat Worker endpoint."
+            exit 1
+          fi
+          npm run build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

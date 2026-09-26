@@ -59,8 +59,6 @@
 </style>
 
 <script>
-  const toggle = document.getElementById('theme-toggle');
-
   const getTheme = (): string => {
     const stored = typeof localStorage !== 'undefined' ? localStorage.getItem('theme') : null;
     if (stored === 'dark' || stored === 'light') return stored;
@@ -72,10 +70,15 @@
     if (typeof localStorage !== 'undefined') localStorage.setItem('theme', theme);
   };
 
-  // Apply on load (also handled inline in BaseLayout to avoid FOUC)
-  applyTheme(getTheme());
+  const restoreTheme = () => applyTheme(getTheme());
 
-  toggle?.addEventListener('click', () => {
+  // Apply on load (also handled inline in BaseLayout to avoid FOUC).
+  restoreTheme();
+  document.addEventListener('astro:after-swap', restoreTheme);
+
+  document.addEventListener('click', (event) => {
+    const target = event.target;
+    if (!(target instanceof Element) || !target.closest('#theme-toggle')) return;
     const current = document.documentElement.getAttribute('data-theme');
     applyTheme(current === 'dark' ? 'light' : 'dark');
   });

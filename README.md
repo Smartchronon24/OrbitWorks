@@ -14,17 +14,19 @@ The site is intentionally content-driven. Portfolio facts live in typed data fil
 - **Project pages** — reusable technical case-study layout with architecture flows, snapshot cards, implementation details, decisions, results, and future work.
 - **Experience** — professional history with links to related projects.
 - **Resume** — resume page and canonical PDF asset.
+- **OrbitWorks-AI** — persistent portfolio chat workspace powered by a Cloudflare Worker, Workers AI, and Vectorize.
 
 ## Technology
 
 - [Astro](https://astro.build/) 7 — static site generation and routing
 - TypeScript — configuration, structured portfolio data, and type checking
 - Astro Content Collections — validated Markdown project content
+- Cloudflare Workers AI and Vectorize — grounded AI responses and portfolio knowledge retrieval
 - HTML and scoped CSS — responsive presentation without a UI framework
 - Node.js and npm — local development and production builds
 - Netlify configuration included for static deployment
 
-No database, backend, CMS, external UI library, or animation framework is required to run the site.
+The portfolio pages are statically generated. The optional AI workspace uses a Cloudflare Worker backend; no database, CMS, external UI library, or animation framework is required for the site itself.
 
 ## Requirements
 
@@ -62,7 +64,30 @@ Other available scripts:
 npm run build      # Generate the production site in dist/
 npm run preview    # Preview the generated production build locally
 npm run astro      # Run the Astro CLI directly
+npm run worker:dev # Run the Cloudflare Worker locally
 ```
+
+## OrbitWorks-AI setup
+
+The AI workspace calls a Cloudflare Worker. For local builds, copy `.env.example` to `.env` and set `PUBLIC_AI_API_URL`; the local environment file is ignored by Git. GitHub Pages builds read this URL from the repository Actions variable named `PUBLIC_AI_API_URL`. Set it in **Settings → Secrets and variables → Actions → Variables** to the public chat endpoint, including `/api/chat` (for example, `https://<worker>.<account>.workers.dev/api/chat`). It is a public endpoint, not a credential. The Pages workflow stops with an error if the variable is missing, rather than publishing a site whose chat silently points to a nonexistent GitHub Pages API.
+
+The Worker is configured in `wrangler.jsonc` and uses Workers AI plus the `orbitworks-knowledge` Vectorize index. For local development, copy `.dev.vars.example` to `.dev.vars` and set a private `KNOWLEDGE_INGEST_TOKEN`; `.dev.vars` is ignored. Run the Worker with:
+
+```bash
+npm run worker:dev
+```
+
+The private `knowledge/` directory contains source material used to build the retrieval index and is intentionally excluded from Git. The Node-based ingestion and query utilities also need `KNOWLEDGE_INGEST_TOKEN` in the current shell environment. Set the ingestion token as a Cloudflare Worker secret (for example, with `npx wrangler secret put KNOWLEDGE_INGEST_TOKEN`) and use the matching value locally when running the scripts. Do not put this token in `PUBLIC_AI_API_URL`, frontend code, or a GitHub Pages build variable. With the Worker running and the token configured, maintain the index or inspect retrieval with:
+
+```bash
+export KNOWLEDGE_INGEST_TOKEN="<your-local-token>"
+npm run knowledge:ingest
+npm run knowledge:query -- "What is the architecture of Invoice Processing?"
+```
+
+In PowerShell, set it for the current terminal with `$env:KNOWLEDGE_INGEST_TOKEN = "<your-local-token>"`.
+
+Ingestion updates Vectorize and uses the local `.knowledge-vectorize-manifest.json` to identify stale vectors. Keep access tokens, `.env` files, Worker secrets, and private knowledge sources out of commits. Example configuration files contain placeholders only.
 
 ## Production build
 
@@ -88,7 +113,7 @@ npm run preview
 │   ├── images/                 # Static certificates, illustrations, and project assets
 │   └── resume.pdf              # Canonical resume PDF
 ├── src/
-│   ├── ai/                     # Boundary and principles for future AI integration
+│   ├── ai/                     # AI integration architecture notes
 │   ├── components/             # Reusable page, shell, project, and primitive components
 │   ├── content/
 │   │   └── projects/           # Markdown case studies; one file becomes one project route
@@ -101,6 +126,9 @@ npm run preview
 ├── CONTENT_GUIDE.md            # Detailed content authoring rules
 ├── astro.config.mjs            # Astro/Vite configuration
 ├── netlify.toml                # Netlify build and publish settings
+├── wrangler.jsonc              # Cloudflare Worker and AI bindings
+├── cloudflare/                 # Worker API and retrieval implementation
+├── scripts/                    # Knowledge ingestion and query utilities
 ├── package.json                # Scripts and dependencies
 └── tsconfig.json               # TypeScript configuration
 ```
@@ -117,6 +145,7 @@ The main routes are:
 | `/projects/:slug` | `src/pages/projects/[slug].astro` | Generated project case study |
 | `/experience` | `src/pages/experience.astro` | Work experience |
 | `/resume` | `src/pages/resume.astro` | Resume page |
+| `/ai` | `src/pages/ai.astro` | OrbitWorks-AI workspace entry page |
 
 Project detail routes are generated automatically from files in `src/content/projects/`. Do not create an individual Astro page for each project.
 
@@ -247,23 +276,23 @@ For other static hosts, use:
 
 The supported deployment model is compatible with Netlify, Cloudflare Pages, and GitHub Pages. Confirm the host's Node version matches the project requirement before building.
 
-## Future AI integration boundary
+## AI architecture
 
-`src/ai/` documents a future provider-agnostic AI architecture. Canonical portfolio content remains the source of truth:
+`src/ai/` documents the frontend integration boundary. The active assistant retrieves relevant material on the server and streams a grounded response:
 
 ```text
 Canonical Portfolio Content
             ↓
-      AI Context Builder
+  Cloudflare Worker
             ↓
-       AI Provider
+ Workers AI Embeddings
             ↓
-      Cloudflare Worker
+ Cloudflare Vectorize
             ↓
-        Workers AI
+ Context Assembly and Streaming Generation
 ```
 
-This repository does not currently implement an AI backend, AI database, or automatic resume parser. Any future integration must avoid duplicating content and must state when portfolio information is unavailable. See [`src/ai/README.md`](./src/ai/README.md).
+The chat frontend and `/api/chat` Worker preserve streaming and Markdown responses. Retrieval and knowledge files remain server-side; there is no live connection to external profile or email services. See [`src/ai/README.md`](./src/ai/README.md) for the integration boundary.
 
 ## Validation checklist
 

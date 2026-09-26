@@ -2,6 +2,10 @@
 dist/
 # generated types
 .astro/
+.wrangler/
+.knowledge-vectorize-manifest.json
+.dev.vars*
+!.dev.vars.example
 
 # dependencies
 node_modules/
@@ -14,8 +18,15 @@ pnpm-debug.log*
 
 
 # environment variables
-.env
-.env.production
+.env*
+!.env.example
+
+# Private credentials and keys
+.secrets/
+*.pem
+*.key
+*.p12
+*.pfx
 
 # macOS-specific files
 .DS_Store
@@ -27,6 +38,6 @@ pnpm-debug.log*
 # local agent/instruction files
 AGENTS.md
 CLAUDE.md
-
+knowledge/
 # source-only reference documents
 *.docx

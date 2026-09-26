@@ -1,0 +1,515 @@
+---
+interface Props {
+  endpoint?: string;
+}
+
+const { endpoint = import.meta.env.PUBLIC_AI_API_URL || '/api/chat' } = Astro.props;
+---
+
+<section class="ai-chat" data-endpoint={endpoint} aria-labelledby="ai-chat-title">
+  <header class="ai-chat-header">
+    <div>
+      <p class="ai-chat-eyebrow">PORTFOLIO ASSISTANT</p>
+      <h2 id="ai-chat-title">OrbitWorks-AI</h2>
+    </div>
+    <button class="ai-close" type="button" data-ai-close aria-label="Close OrbitWorks-AI workspace">×</button>
+  </header>
+
+  <div class="ai-chat-panel">
+    <div class="ai-messages" data-messages role="log" aria-live="polite" aria-relevant="additions text">
+      <div class="ai-message ai-message--assistant" data-role="assistant">
+        <span class="ai-message-label">OrbitWorks-AI</span>
+        <div class="ai-message-content"><p>Ask about Navaneth's projects, experience, or technical work.</p></div>
+      </div>
+    </div>
+
+    <p class="ai-status" data-status role="status" aria-live="polite"></p>
+
+    <form class="ai-form" data-form>
+      <label class="sr-only" for="ai-message">Message OrbitWorks-AI</label>
+      <textarea
+        id="ai-message"
+        name="message"
+        rows="2"
+        maxlength="4000"
+        placeholder="Ask something..."
+        autocomplete="off"
+        required
+      ></textarea>
+      <div class="ai-form-actions">
+        <span class="ai-word-count" data-word-count aria-live="polite">1 question · 0 / 25 words</span>
+        <button type="submit" aria-label="Send message" data-send>
+          <span aria-hidden="true">→</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<script>
+  import { marked } from 'marked';
+  import DOMPurify from 'dompurify';
+
+  type MessageElement = HTMLDivElement & { dataset: DOMStringMap };
+
+  const chat = document.querySelector<HTMLElement>('.ai-chat');
+  const form = chat?.querySelector<HTMLFormElement>('[data-form]');
+  const input = chat?.querySelector<HTMLTextAreaElement>('#ai-message');
+  const messages = chat?.querySelector<HTMLDivElement>('[data-messages]');
+  const status = chat?.querySelector<HTMLParagraphElement>('[data-status]');
+  const send = chat?.querySelector<HTMLButtonElement>('[data-send]');
+  const wordCount = chat?.querySelector<HTMLSpanElement>('[data-word-count]');
+  const endpoint = chat?.dataset.endpoint;
+
+  if (chat && form && input && messages && status && send && wordCount && endpoint) {
+    const wordsPerQuestion = 25;
+    const maxQuestions = 4;
+    const countWords = (value: string) => value.trim() ? value.trim().split(/\s+/).length : 0;
+    const countQuestions = (value: string) => {
+      const explicitQuestions = (value.match(/\?/g) || []).length;
+      const questionWordClauses = value.match(
+        /(?:^|[,.!?;:]|\b(?:and|or|but)\b)\s*(?:what|when|why|how|who|where|which|what's|whats|when's|whens|who's|whos|where's|wheres|why's|whys|how's|hows)\b/gi
+      )?.length || 0;
+
+      return Math.min(
+        maxQuestions,
+        Math.max(1, explicitQuestions, questionWordClauses)
+      );
+    };
+
+    const updateWordCount = () => {
+      const count = countWords(input.value);
+      const questions = countQuestions(input.value);
+      const budget = Math.min(maxQuestions * wordsPerQuestion, questions * wordsPerQuestion);
+      wordCount.textContent = `${questions} question${questions === 1 ? '' : 's'} · ${count} / ${budget} words`;
+      wordCount.classList.toggle('ai-word-count--over', count > budget);
+      return { count, budget };
+    };
+
+    const showValidation = (message: string) => {
+      status.textContent = message;
+      status.classList.add('ai-status--error');
+    };
+
+    const addMessage = (role: 'user' | 'assistant', text = ''): MessageElement => {
+      const message = document.createElement('div') as MessageElement;
+      message.className = `ai-message ai-message--${role}`;
+      message.dataset.role = role;
+      const label = document.createElement('span');
+      label.className = 'ai-message-label';
+      label.textContent = role === 'user' ? 'You' : 'OrbitWorks-AI';
+      const content = document.createElement(role === 'user' ? 'p' : 'div');
+      content.className = role === 'assistant' ? 'ai-message-content' : '';
+      content.dataset.raw = text;
+      message.append(label, content);
+      if (role === 'user') content.textContent = text;
+      else renderAssistant(message);
+      messages.appendChild(message);
+      messages.scrollTop = messages.scrollHeight;
+      return message;
+    };
+
+    const setBusy = (busy: boolean) => {
+      input.disabled = busy;
+      send.disabled = busy;
+      send.setAttribute('aria-busy', String(busy));
+    };
+
+    const isNearBottom = () =>
+      messages.scrollHeight - messages.scrollTop - messages.clientHeight < 48;
+
+    const appendText = (message: MessageElement, text: string) => {
+      const shouldFollow = isNearBottom();
+      const content = message.querySelector<HTMLElement>('.ai-message-content');
+      if (content) {
+        content.dataset.raw = (content.dataset.raw || '') + text;
+        renderAssistant(message);
+      }
+      if (shouldFollow) messages.scrollTop = messages.scrollHeight;
+    };
+
+    const renderAssistant = (message: MessageElement) => {
+      const content = message.querySelector<HTMLElement>('.ai-message-content');
+      if (!content) return;
+      const markdown = marked.parse(content.dataset.raw || '', { async: false, breaks: true });
+      content.innerHTML = DOMPurify.sanitize(markdown);
+    };
+
+    const extractChunk = (value: unknown): string => {
+      if (typeof value === 'string') return value;
+      if (!value || typeof value !== 'object') return '';
+      const record = value as Record<string, unknown>;
+      for (const key of ['response', 'text', 'text_response']) {
+        if (typeof record[key] === 'string') return record[key];
+      }
+      return '';
+    };
+
+    const readResponse = async (response: Response, assistant: MessageElement) => {
+      if (!response.body) {
+        appendText(assistant, await response.text());
+        return;
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        buffer += decoder.decode(value, { stream: !done });
+        const lines = buffer.split(/\r?\n/);
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          const data = line.startsWith('data:') ? line.slice(5).trim() : line.trim();
+          if (!data || data === '[DONE]') continue;
+          try {
+            appendText(assistant, extractChunk(JSON.parse(data)));
+          } catch {
+            appendText(assistant, data);
+          }
+        }
+
+        if (done) {
+          if (buffer.trim()) {
+            try {
+              appendText(assistant, extractChunk(JSON.parse(buffer)) || buffer);
+            } catch {
+              appendText(assistant, buffer);
+            }
+          }
+          break;
+        }
+      }
+    };
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const message = input.value.trim();
+      if (!message || send.disabled) return;
+      const wordLimit = updateWordCount();
+      if (wordLimit.count > wordLimit.budget) {
+        showValidation('Please keep your message within the word budget for its detected questions.');
+        updateWordCount();
+        input.focus();
+        return;
+      }
+
+      input.value = '';
+      updateWordCount();
+      addMessage('user', message);
+      const assistant = addMessage('assistant');
+      assistant.classList.add('ai-message--pending');
+      status.textContent = 'Generating response…';
+      status.classList.remove('ai-status--error');
+      setBusy(true);
+
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message })
+        });
+        if (!response.ok) {
+          const detail = await response.text();
+          throw new Error(detail || `Request failed (${response.status})`);
+        }
+        await readResponse(response, assistant);
+        assistant.classList.remove('ai-message--pending');
+        if (!assistant.querySelector('.ai-message-content')?.textContent?.trim()) {
+          throw new Error('The model returned an empty response.');
+        }
+        status.textContent = '';
+        status.classList.remove('ai-status--error');
+      } catch (error) {
+        assistant.remove();
+        status.textContent = error instanceof Error
+          ? error.message
+          : 'Unable to reach the AI assistant. Please try again.';
+        status.classList.add('ai-status--error');
+      } finally {
+        setBusy(false);
+        input.focus();
+      }
+    });
+
+    input.addEventListener('input', () => {
+      const wordLimit = updateWordCount();
+      if (wordLimit.count <= wordLimit.budget && status.classList.contains('ai-status--error')) {
+        status.textContent = '';
+        status.classList.remove('ai-status--error');
+      }
+    });
+
+    input.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        form.requestSubmit();
+      }
+    });
+  }
+</script>
+
+<style>
+  .ai-chat {
+    display: flex;
+    height: 100%;
+    min-height: 0;
+    flex-direction: column;
+  }
+
+  .ai-chat-header {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .ai-chat-eyebrow {
+    margin: 0 0 2px;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.14em;
+  }
+
+  .ai-chat-header h2 {
+    margin: 0;
+    font-size: var(--text-lg);
+  }
+
+  .ai-close {
+    display: inline-flex;
+    width: 2.25rem;
+    height: 2.25rem;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--color-text-secondary);
+    font: inherit;
+    font-size: var(--text-2xl);
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .ai-close:hover {
+    border-color: var(--color-border);
+    background: var(--color-surface-hover);
+    color: var(--color-text-primary);
+  }
+
+  .ai-chat-panel {
+    display: flex;
+    min-height: 0;
+    flex: 1 1 auto;
+    flex-direction: column;
+  }
+
+  .ai-messages {
+    display: flex;
+    min-height: 0;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: var(--space-3);
+    overflow-y: auto;
+    padding: var(--space-4);
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
+
+  .ai-message {
+    width: 100%;
+    max-width: none;
+    padding: var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: 7px;
+    background: var(--color-canvas-bg);
+  }
+
+  .ai-message--user {
+    align-self: flex-end;
+    color: var(--color-text-primary);
+    background: var(--color-surface);
+  }
+
+  .ai-message-label {
+    display: block;
+    margin-bottom: var(--space-1);
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .ai-message > p,
+  .ai-message-content {
+    margin: 0;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .ai-message--pending .ai-message-content:empty::after {
+    content: '…';
+    animation: ai-pulse 1s steps(2, end) infinite;
+  }
+
+  .ai-message-content > :first-child { margin-top: 0; }
+  .ai-message-content > :last-child { margin-bottom: 0; }
+  .ai-message-content h1,
+  .ai-message-content h2,
+  .ai-message-content h3,
+  .ai-message-content h4 {
+    margin: var(--space-3) 0 var(--space-2);
+    color: var(--color-text-primary);
+  }
+  .ai-message-content h1 { font-size: var(--text-xl); }
+  .ai-message-content h2 { font-size: var(--text-lg); }
+  .ai-message-content h3,
+  .ai-message-content h4 { font-size: var(--text-base); }
+  .ai-message-content p,
+  .ai-message-content ul,
+  .ai-message-content ol,
+  .ai-message-content blockquote,
+  .ai-message-content pre,
+  .ai-message-content table {
+    margin: 0 0 var(--space-3);
+  }
+  .ai-message-content ul,
+  .ai-message-content ol { padding-left: 1.4rem; }
+  .ai-message-content li + li { margin-top: var(--space-1); }
+  .ai-message-content blockquote {
+    padding-left: var(--space-3);
+    border-left: 2px solid var(--color-border);
+    color: var(--color-text-secondary);
+  }
+  .ai-message-content :not(pre) > code {
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+    background: var(--color-surface-hover);
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+  }
+  .ai-message-content pre {
+    overflow-x: auto;
+    padding: var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: var(--color-canvas-bg);
+  }
+  .ai-message-content pre code { font-family: var(--font-mono); font-size: var(--text-xs); }
+  .ai-message-content table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    border-collapse: collapse;
+  }
+  .ai-message-content th,
+  .ai-message-content td {
+    padding: var(--space-1) var(--space-2);
+    border: 1px solid var(--color-border);
+    text-align: left;
+  }
+  .ai-message-content th { color: var(--color-text-primary); }
+  .ai-message-content a { color: var(--color-accent); text-decoration: underline; }
+
+  .ai-status {
+    min-height: 1.5rem;
+    margin: 0;
+    padding: 0 var(--space-4);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    flex: 0 0 auto;
+  }
+
+  .ai-status--error {
+    color: #c0392b;
+  }
+
+  .ai-form {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--space-2);
+    padding: var(--space-3);
+    border-top: 1px solid var(--color-border);
+    flex: 0 0 auto;
+    background: var(--color-surface);
+  }
+
+  .ai-form-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--space-1);
+    flex: 0 0 auto;
+  }
+
+  .ai-word-count {
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+    white-space: nowrap;
+  }
+
+  .ai-word-count--over {
+    color: #c0392b;
+  }
+
+  .ai-form textarea {
+    flex: 1;
+    min-width: 0;
+    resize: vertical;
+    padding: var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: var(--color-canvas-bg);
+    color: var(--color-text-primary);
+    font: inherit;
+  }
+
+  .ai-form button {
+    display: inline-flex;
+    width: 2.75rem;
+    height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    border: 1px solid var(--color-text-primary);
+    border-radius: 6px;
+    background: var(--color-text-primary);
+    color: var(--color-bg);
+    font-size: var(--text-lg);
+    cursor: pointer;
+  }
+
+  .ai-form button:hover:not(:disabled) {
+    border-color: var(--color-accent);
+    background: var(--color-accent);
+    color: #fff;
+  }
+
+  .ai-form button:disabled {
+    cursor: wait;
+    opacity: 0.5;
+  }
+
+  @keyframes ai-pulse {
+    50% { opacity: 0.25; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ai-message--pending .ai-message-content:empty::after { animation: none; }
+  }
+
+  @media (max-width: 600px) {
+    .ai-chat-header { padding: var(--space-2) var(--space-3); }
+    .ai-messages { padding: var(--space-3); }
+    .ai-message { padding: var(--space-2) var(--space-3); }
+  }
+</style>

@@ -9,12 +9,20 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "worker:dev": "wrangler dev",
+    "knowledge:ingest": "node scripts/ingest-knowledge.mjs",
+    "knowledge:query": "node scripts/query-knowledge.mjs"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.10",
     "astro": "^7.3.1",
+    "dompurify": "^3.4.16",
+    "marked": "^18.0.14",
     "typescript": "^6.0.3"
+  },
+  "devDependencies": {
+    "wrangler": "^4.39.0"
   },
   "allowScripts": {
     "esbuild": true

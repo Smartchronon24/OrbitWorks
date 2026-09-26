@@ -25,6 +25,16 @@ const isCurrent = (path: string) => currentPath === path || currentPath.startsWi
         <li>
           <a href="/OrbitWorks/resume" aria-current={isCurrent('/resume') ? 'page' : undefined}>Resume</a>
         </li>
+        <li>
+          <button
+            class="ai-workspace-toggle"
+            type="button"
+            data-ai-toggle
+            aria-controls="ai-workspace-panel"
+            aria-expanded="false"
+            aria-label="Open OrbitWorks-AI workspace"
+          ><span>Ask <strong>me</strong></span></button>
+        </li>
       </ul>
     </nav>
 
@@ -57,11 +67,28 @@ const isCurrent = (path: string) => currentPath === path || currentPath.startsWi
     flex-direction: column;
     line-height: 1.15;
     gap: 1px;
-    transition: opacity var(--transition-fast);
+    padding: 0.3rem 0.5rem;
+    border: 1.4px solid transparent;
+    border-radius: 6px;
+    background:
+      linear-gradient(var(--color-bg), var(--color-bg)) padding-box,
+      linear-gradient(115deg, #7f8790 0%, #c3c8ce 20%, #929aa3 42%, #edf0f2 58%, #a0a7af 78%, #737b84 100%) border-box;
+    background-size: auto, 240% 240%;
+    box-shadow: 0 0 0 0.7px rgba(112, 120, 129, 0.3), 0 0 10px rgba(148, 154, 161, 0.2);
+    transform: scale(1.05);
+    transform-origin: left center;
+    animation: brand-silver-shine 6s ease-in-out infinite;
+    transition: opacity var(--transition-fast), box-shadow var(--transition-fast);
   }
 
   .brand:hover {
-    opacity: 0.8;
+    opacity: 1;
+    box-shadow: 0 0 0 0.7px rgba(112, 120, 129, 0.42), 0 0 14px rgba(148, 154, 161, 0.32);
+  }
+
+  @keyframes brand-silver-shine {
+    0%, 100% { background-position: 0 0, 0% 50%; }
+    50% { background-position: 0 0, 100% 50%; }
   }
 
   .name {
@@ -79,7 +106,7 @@ const isCurrent = (path: string) => currentPath === path || currentPath.startsWi
 
   .nav-links {
     display: flex;
-    gap: var(--space-4);
+    gap: var(--space-2);
     list-style: none;
     margin: 0;
     padding: 0;
@@ -87,43 +114,56 @@ const isCurrent = (path: string) => currentPath === path || currentPath.startsWi
 
   .nav-links a {
     position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.36rem;
+    padding: 0.35rem 0.65rem;
+    border: 1px solid var(--color-border);
+    border-radius: 5px;
+    background: var(--color-surface);
     font-size: var(--text-sm);
     color: var(--color-text-secondary);
     font-weight: 500;
-    padding: var(--space-1) 0;
-    transition: color var(--transition-fast);
+    transition: color var(--transition-fast), border-color var(--transition-fast), background-color var(--transition-fast);
   }
 
-  .nav-links a:hover {
+  .nav-links a:hover,
+  .nav-links a[aria-current="page"] {
+    border-color: var(--color-text-muted);
+    background: var(--color-surface-hover);
     color: var(--color-text-primary);
   }
 
-  /* Active state indicator */
-  .nav-links a[aria-current="page"] {
-    color: var(--color-accent);
+  .nav-links .ai-workspace-toggle {
+    position: relative;
+    isolation: isolate;
+    min-height: 2.36rem;
+    padding: 0.35rem 0.65rem;
+    border: 2px solid transparent;
+    border-radius: 5px;
+    background:
+      linear-gradient(var(--color-surface), var(--color-surface)) padding-box,
+      linear-gradient(115deg, #64748b 0%, #cbd5e1 16%, #8b5cf6 38%, #0891b2 58%, #db2777 78%, #64748b 100%) border-box;
+    background-size: auto, 220% 220%;
+    box-shadow: 0 0 0 1px rgba(100, 116, 139, 0.16);
+    color: var(--color-text-secondary);
+    font: inherit;
+    font-size: var(--text-sm);
+    font-weight: 500;
+    cursor: pointer;
+    animation: ai-silver-spectrum 8s ease-in-out infinite;
+    transition: color var(--transition-fast), box-shadow var(--transition-fast);
   }
 
-  .nav-links a::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background-color: var(--color-accent);
-    transform: scaleX(0);
-    transform-origin: right;
-    transition: transform var(--transition-normal);
+  .nav-links .ai-workspace-toggle:hover,
+  .nav-links .ai-workspace-toggle[aria-expanded="true"] {
+    color: var(--color-text-primary);
+    box-shadow: 0 0 0 1px rgba(100, 116, 139, 0.28), 0 0 14px rgba(8, 145, 178, 0.2), 0 0 18px rgba(139, 92, 246, 0.14);
   }
 
-  .nav-links a[aria-current="page"]::after {
-    transform: scaleX(1);
-    transform-origin: left;
-  }
-
-  .nav-links a:hover::after {
-    transform: scaleX(1);
-    transform-origin: left;
+  @keyframes ai-silver-spectrum {
+    0%, 100% { background-position: 0 0, 0% 50%; }
+    50% { background-position: 0 0, 100% 50%; }
   }
 
   .nav-actions {
@@ -134,21 +174,28 @@ const isCurrent = (path: string) => currentPath === path || currentPath.startsWi
 
   @media (max-width: 600px) {
     .nav-links {
-      gap: var(--space-3);
+      gap: var(--space-1);
     }
 
     .nav-links a {
+      min-height: 2.1rem;
+      padding: 0.25rem 0.4rem;
       font-size: var(--text-xs);
     }
 
-    .site-id {
-      display: none;
+    .nav-links .ai-workspace-toggle {
+      min-height: 2.1rem;
+      padding: 0.3rem 0.4rem;
+      font-size: var(--text-xs);
     }
+
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .nav-links a::after {
-      transition: none;
-    }
+    .nav-links a,
+    .nav-links .ai-workspace-toggle,
+    .brand { transition: none; }
+    .nav-links .ai-workspace-toggle { animation: none; }
+    .brand { animation: none; }
   }
 </style>

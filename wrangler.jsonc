@@ -1,0 +1,23 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "orbitworks-ai",
+  "main": "cloudflare/worker.ts",
+  "compatibility_date": "2026-09-24",
+  "workers_dev": true,
+  "ai": {
+    "binding": "AI",
+    "remote": true
+  },
+  "vectorize": [
+    {
+      "binding": "VECTORIZE",
+      "index_name": "orbitworks-knowledge",
+      "remote": true
+    }
+  ],
+  "vars": {
+    "_comment": "Run this command to list the available models: npx wrangler ai models list",
+    "MODEL": "@cf/meta/llama-3.1-8b-instruct-fp8",
+    "ALLOWED_ORIGIN": "http://localhost:4321,https://smartchronon24.github.io"
+  }
+}

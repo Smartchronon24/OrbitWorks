@@ -2,6 +2,8 @@
 import Navbar from '../components/shell/Navbar.astro';
 import Footer from '../components/shell/Footer.astro';
 import QuietSpace from '../components/QuietSpace.astro';
+import AIChat from '../components/ai/AIChat.astro';
+import { ClientRouter } from 'astro:transitions';
 import '../styles/global.css';
 import { site } from '../data/site';
 
@@ -25,6 +27,7 @@ const { title = site.title, description = site.description } = Astro.props;
   <meta property="og:type" content="website" />
   <link rel="icon" type="image/svg+xml" href="/OrbitWorks/favicon.svg" />
   <link rel="icon" type="image/x-icon" href="/OrbitWorks/favicon.ico" />
+  <ClientRouter />
   <!-- Prevent flash of unstyled theme -->
   <script is:inline>
     (function() {
@@ -39,31 +42,142 @@ const { title = site.title, description = site.description } = Astro.props;
 <body>
   <QuietSpace />
   <Navbar />
-  <main class="container page-main">
-    <slot />
-  </main>
-  <Footer />
+  <div class="workspace-shell">
+    <div class="workspace-content">
+      <main class="container page-main">
+        <slot />
+      </main>
+      <Footer />
+    </div>
+    <aside
+      id="ai-workspace-panel"
+      class="workspace-panel"
+      data-open="false"
+      aria-label="OrbitWorks-AI workspace"
+      aria-hidden="true"
+      inert
+      transition:persist="orbitworks-ai"
+    >
+      <AIChat />
+    </aside>
+  </div>
 
   <script>
-    // Restrained entrance animations observer
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('is-visible');
-          observer.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.1, rootMargin: '0px 0px -20px 0px' });
+    let revealObserver: IntersectionObserver | undefined;
+    const observeReveals = () => {
+      revealObserver?.disconnect();
+      revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            revealObserver?.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1, rootMargin: '0px 0px -20px 0px' });
 
-    // Initialize observers on DOM content loaded (Astro does this implicitly at end of body)
-    document.querySelectorAll('.reveal').forEach(el => {
-      observer.observe(el);
+      document.querySelectorAll('.reveal:not(.is-visible)').forEach(el => revealObserver?.observe(el));
+    };
+
+    observeReveals();
+    document.addEventListener('astro:page-load', observeReveals);
+
+    const panel = document.getElementById('ai-workspace-panel');
+    const setWorkspaceOpen = (open: boolean, restoreFocus = true) => {
+      if (!panel) return;
+      document.documentElement.classList.toggle('ai-workspace-open', open);
+      panel.dataset.open = String(open);
+      panel.setAttribute('aria-hidden', String(!open));
+      panel.inert = !open;
+      document.querySelectorAll<HTMLButtonElement>('[data-ai-toggle]').forEach((button) => {
+        button.setAttribute('aria-expanded', String(open));
+        button.setAttribute('aria-label', `${open ? 'Close' : 'Open'} OrbitWorks-AI workspace`);
+      });
+
+      if (open) {
+        panel.querySelector<HTMLButtonElement>('[data-ai-close]')?.focus();
+      } else if (restoreFocus) {
+        document.querySelector<HTMLButtonElement>('[data-ai-toggle]')?.focus();
+      }
+    };
+
+    const syncWorkspaceState = () => {
+      if (!panel) return;
+      const open = panel.dataset.open === 'true';
+      document.documentElement.classList.toggle('ai-workspace-open', open);
+      panel.setAttribute('aria-hidden', String(!open));
+      panel.inert = !open;
+      document.querySelectorAll<HTMLButtonElement>('[data-ai-toggle]').forEach((button) => {
+        button.setAttribute('aria-expanded', String(open));
+        button.setAttribute('aria-label', `${open ? 'Close' : 'Open'} OrbitWorks-AI workspace`);
+      });
+    };
+
+    syncWorkspaceState();
+    document.addEventListener('astro:page-load', syncWorkspaceState);
+
+    document.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (target.closest('[data-ai-toggle]')) {
+        setWorkspaceOpen(!document.documentElement.classList.contains('ai-workspace-open'));
+      } else if (target.closest('[data-ai-close]')) {
+        setWorkspaceOpen(false);
+      }
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && document.documentElement.classList.contains('ai-workspace-open')) {
+        setWorkspaceOpen(false);
+      }
     });
   </script>
 </body>
 </html>
 
 <style>
+  .workspace-shell {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 0fr;
+    align-items: start;
+    gap: 0;
+    width: min(100%, 1520px);
+    margin: 0 auto;
+    padding: 0 var(--space-4);
+    transition: grid-template-columns 280ms ease, gap 280ms ease;
+  }
+
+  .workspace-content {
+    min-width: 0;
+  }
+
+  .workspace-panel {
+    position: sticky;
+    top: calc(var(--layout-nav-height) + var(--space-5));
+    min-width: 0;
+    width: 0;
+    height: calc(100dvh - var(--layout-nav-height) - var(--space-4));
+    overflow: hidden;
+    visibility: hidden;
+    opacity: 0;
+    border: 0 solid var(--color-border);
+    border-radius: 12px;
+    background-color: var(--color-canvas-bg);
+    transition: opacity 200ms ease, visibility 0s linear 280ms;
+  }
+
+  :global(.workspace-shell:has(> #ai-workspace-panel[data-open="true"])) {
+    grid-template-columns: minmax(0, 1fr) minmax(320px, clamp(320px, 30vw, 400px));
+    gap: var(--space-3);
+  }
+
+  :global(.workspace-shell:has(> #ai-workspace-panel[data-open="true"])) .workspace-panel {
+    width: auto;
+    visibility: visible;
+    opacity: 1;
+    border-width: 1px;
+    transition: opacity 200ms ease, visibility 0s;
+  }
+
   .page-main {
     min-height: calc(100vh - var(--layout-nav-height) - 160px);
     margin-top: var(--space-5);
@@ -87,7 +201,41 @@ const { title = site.title, description = site.description } = Astro.props;
     transition: background-color var(--transition-normal), border-color var(--transition-normal), box-shadow var(--transition-normal);
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 900px) {
+    .workspace-shell,
+    :global(.workspace-shell:has(> #ai-workspace-panel[data-open="true"])) {
+      display: block;
+      width: 100%;
+      padding: 0 var(--space-3);
+    }
+
+    .workspace-panel,
+    :global(.workspace-shell:has(> #ai-workspace-panel[data-open="true"])) .workspace-panel {
+      position: fixed;
+      z-index: 90;
+      inset: var(--layout-nav-height) 0 0;
+      width: auto;
+      height: auto;
+      padding: var(--space-2) var(--space-3) var(--space-3);
+      border: 0;
+      border-radius: 0;
+      background: var(--color-bg);
+      transform: translateX(100%);
+      visibility: hidden;
+      opacity: 0;
+      transition: transform 280ms ease, opacity 200ms ease, visibility 0s linear 280ms;
+      overflow: hidden;
+      overscroll-behavior: contain;
+    }
+
+    :global(.workspace-shell:has(> #ai-workspace-panel[data-open="true"])) .workspace-panel {
+      transform: translateX(0);
+      visibility: visible;
+      opacity: 1;
+      border-top: 1px solid var(--color-border);
+      transition: transform 280ms ease, opacity 200ms ease, visibility 0s;
+    }
+
     .page-main {
       margin-top: var(--space-3);
       margin-bottom: var(--space-5);
@@ -95,6 +243,13 @@ const { title = site.title, description = site.description } = Astro.props;
       border-radius: 12px;
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .workspace-shell,
+    .workspace-panel {
+      transition: none !important;
     }
   }
 </style>
