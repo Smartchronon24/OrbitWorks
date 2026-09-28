@@ -29,6 +29,38 @@
     mask-image: linear-gradient(90deg, transparent 0%, #000 18%, #000 88%, transparent 100%);
   }
 
+  :global([data-theme="light"]) .invoice-visual {
+    opacity: 0.78;
+    background-image:
+      repeating-linear-gradient(
+        0deg,
+        transparent 0,
+        transparent 31px,
+        color-mix(in srgb, var(--color-accent) 11%, transparent) 32px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        transparent 0,
+        transparent 47px,
+        color-mix(in srgb, var(--color-accent) 9%, transparent) 48px
+      );
+  }
+
+  :global([data-theme="light"]) .scan-pass {
+    background: linear-gradient(
+      180deg,
+      transparent,
+      color-mix(in srgb, var(--color-accent) 5%, transparent) 30%,
+      color-mix(in srgb, var(--color-accent) 19%, transparent) 50%,
+      color-mix(in srgb, var(--color-accent) 5%, transparent) 70%,
+      transparent
+    );
+  }
+
+  :global([data-theme="light"]) .ocr-region {
+    border-color: color-mix(in srgb, var(--color-accent) 36%, transparent);
+  }
+
   .scan-pass {
     position: absolute;
     top: -42%;
