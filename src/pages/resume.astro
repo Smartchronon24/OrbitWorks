@@ -381,6 +381,17 @@ const listSkills = (items: string[]) => items.join(', ');
     .resume-toolbar {
       align-items: center;
       flex-direction: row;
+      gap: var(--space-2);
+    }
+
+    .resume-toolbar h1 {
+      font-size: var(--text-3xl);
+    }
+
+    :global(.btn.download-resume) {
+      min-height: 44px;
+      padding-inline: 0.7rem;
+      white-space: nowrap;
     }
 
     .resume-identity {
@@ -389,6 +400,12 @@ const listSkills = (items: string[]) => items.join(', ');
 
     .contact-list {
       justify-items: start;
+    }
+
+    .contact-list a {
+      display: flex;
+      align-items: center;
+      min-height: 44px;
     }
 
     .project-list,

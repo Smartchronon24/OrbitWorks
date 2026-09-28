@@ -11,7 +11,18 @@ const isCurrent = (path: string) => currentPath === path || currentPath.startsWi
       <span class="site-id">ORBIT WORKS</span>
     </a>
 
-    <nav aria-label="Primary navigation">
+    <button
+      class="mobile-menu-toggle"
+      type="button"
+      data-mobile-menu-toggle
+      aria-controls="primary-navigation"
+      aria-expanded="false"
+      aria-label="Open navigation menu"
+    >
+      <span class="menu-icon" aria-hidden="true"><i></i><i></i><i></i></span>
+    </button>
+
+    <nav id="primary-navigation" aria-label="Primary navigation">
       <ul class="nav-links">
         <li>
           <a href="/OrbitWorks/projects" aria-current={isCurrent('/projects') ? 'page' : undefined}>Work</a>
@@ -172,23 +183,97 @@ const isCurrent = (path: string) => currentPath === path || currentPath.startsWi
     gap: var(--space-2);
   }
 
-  @media (max-width: 600px) {
+  .mobile-menu-toggle {
+    display: none;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: var(--color-surface);
+    color: var(--color-text-primary);
+    cursor: pointer;
+  }
+
+  .menu-icon {
+    display: grid;
+    gap: 4px;
+  }
+
+  .menu-icon i {
+    display: block;
+    width: 18px;
+    height: 2px;
+    border-radius: 999px;
+    background: currentColor;
+  }
+
+  .mobile-menu-toggle:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  @media (max-width: 700px) {
+    .navbar-inner {
+      justify-content: flex-start;
+      gap: var(--space-2);
+    }
+
+    .brand {
+      margin-right: auto;
+      transform: none;
+    }
+
+    .mobile-menu-toggle {
+      display: inline-flex;
+      flex: 0 0 auto;
+    }
+
+    .nav-actions {
+      flex: 0 0 auto;
+    }
+
+    .nav-actions :global(.theme-toggle) {
+      width: 44px;
+      height: 44px;
+    }
+
+    .navbar-inner > nav {
+      position: absolute;
+      z-index: 101;
+      top: 100%;
+      right: 0;
+      left: 0;
+      display: none;
+      padding: var(--space-3);
+      border-bottom: 1px solid var(--color-border);
+      background: var(--color-bg);
+      box-shadow: 0 12px 24px -20px var(--color-text-primary);
+    }
+
+    .navbar:has(.mobile-menu-toggle[aria-expanded="true"]) .navbar-inner > nav {
+      display: block;
+    }
+
     .nav-links {
-      gap: var(--space-1);
+      flex-direction: column;
+      gap: var(--space-2);
     }
 
-    .nav-links a {
-      min-height: 2.1rem;
-      padding: 0.25rem 0.4rem;
-      font-size: var(--text-xs);
-    }
-
+    .nav-links li,
+    .nav-links a,
     .nav-links .ai-workspace-toggle {
-      min-height: 2.1rem;
-      padding: 0.3rem 0.4rem;
-      font-size: var(--text-xs);
+      width: 100%;
     }
 
+    .nav-links a,
+    .nav-links .ai-workspace-toggle {
+      min-height: 44px;
+      justify-content: flex-start;
+      padding: 0.55rem 0.75rem;
+      font-size: var(--text-sm);
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -199,3 +284,41 @@ const isCurrent = (path: string) => currentPath === path || currentPath.startsWi
     .brand { animation: none; }
   }
 </style>
+
+<script>
+  const closeMobileMenu = (header: HTMLElement) => {
+    const toggle = header.querySelector<HTMLButtonElement>('[data-mobile-menu-toggle]');
+    if (!toggle) return;
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.setAttribute('aria-label', 'Open navigation menu');
+  };
+
+  document.addEventListener('click', (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+
+    const toggle = target.closest<HTMLButtonElement>('[data-mobile-menu-toggle]');
+    if (toggle) {
+      const open = toggle.getAttribute('aria-expanded') !== 'true';
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.setAttribute('aria-label', `${open ? 'Close' : 'Open'} navigation menu`);
+      return;
+    }
+
+    const header = target.closest<HTMLElement>('.navbar');
+    if (!header || target.closest('#primary-navigation a, #primary-navigation button')) {
+      document.querySelectorAll<HTMLElement>('.navbar').forEach(closeMobileMenu);
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    document.querySelectorAll<HTMLElement>('.navbar').forEach((header) => {
+      const toggle = header.querySelector<HTMLButtonElement>('[data-mobile-menu-toggle]');
+      if (toggle?.getAttribute('aria-expanded') === 'true') {
+        closeMobileMenu(header);
+        toggle.focus();
+      }
+    });
+  });
+</script>

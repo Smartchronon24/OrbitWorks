@@ -345,6 +345,10 @@ const { title = site.title, description = site.description } = Astro.props;
   }
 
   @media (max-width: 900px) {
+    :global(html.ai-workspace-open) {
+      overflow: hidden;
+    }
+
     .workspace-shell,
     :global(.workspace-shell:has(> #ai-workspace-panel[data-open="true"])) {
       display: block;

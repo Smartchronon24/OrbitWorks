@@ -49,4 +49,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   .ai-entry button:hover {
     background: var(--color-surface-hover);
   }
+
+  @media (max-width: 600px) {
+    .ai-entry button { min-height: 44px; }
+  }
 </style>

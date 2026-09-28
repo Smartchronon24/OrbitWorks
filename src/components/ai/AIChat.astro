@@ -317,7 +317,11 @@ const { endpoint = import.meta.env.PUBLIC_AI_API_URL || '/api/chat' } = Astro.pr
     });
 
     input.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter' && !event.shiftKey) {
+      if (
+        event.key === 'Enter' &&
+        !event.shiftKey &&
+        !window.matchMedia('(max-width: 600px)').matches
+      ) {
         event.preventDefault();
         form.requestSubmit();
       }
@@ -601,6 +605,8 @@ const { endpoint = import.meta.env.PUBLIC_AI_API_URL || '/api/chat' } = Astro.pr
   .ai-form textarea {
     flex: 1;
     min-width: 0;
+    height: 68px;
+    box-sizing: border-box;
     resize: vertical;
     padding: var(--space-3);
     border: 1px solid var(--color-border);
@@ -608,6 +614,7 @@ const { endpoint = import.meta.env.PUBLIC_AI_API_URL || '/api/chat' } = Astro.pr
     background: var(--color-canvas-bg);
     color: var(--color-text-primary);
     font: inherit;
+    line-height: 1.35;
   }
 
   .ai-form button {
@@ -646,7 +653,23 @@ const { endpoint = import.meta.env.PUBLIC_AI_API_URL || '/api/chat' } = Astro.pr
 
   @media (max-width: 600px) {
     .ai-chat-header { padding: var(--space-2) var(--space-3); }
+    .ai-clear {
+      min-height: 44px;
+      white-space: nowrap;
+    }
+    .ai-close {
+      width: 44px;
+      height: 44px;
+    }
     .ai-messages { padding: var(--space-3); }
     .ai-chat :global(.ai-message) { padding: var(--space-2) var(--space-3); }
+    .ai-form { flex-wrap: wrap; align-items: stretch; }
+    .ai-form textarea { flex: 1 1 100%; width: 100%; }
+    .ai-form-actions {
+      flex: 1 1 100%;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
   }
 </style>

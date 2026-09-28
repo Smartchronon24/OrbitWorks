@@ -38,5 +38,16 @@
   .skill-list span { padding: var(--space-1) var(--space-3); border-radius: 999px; background: color-mix(in srgb, var(--color-surface) 90%, white 10%); border: 1px solid color-mix(in srgb, var(--color-border) 65%, transparent); box-shadow: 0 2px 8px color-mix(in srgb, var(--color-text-primary) 7%, transparent); }
   @keyframes flow-pulse { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
   @media (prefers-reduced-motion: reduce) { .architecture-layer:not(:last-child)::after { animation: none; } }
-  @media (max-width: 600px) { .layer-heading { align-items: flex-start; } .layer-heading p { max-width: 7rem; } }
+  @media (max-width: 600px) {
+    .layer-heading {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+    .layer-title,
+    .layer-title h3 { min-width: 0; }
+    .layer-heading p {
+      max-width: 100%;
+      text-align: left;
+    }
+  }
 </style>

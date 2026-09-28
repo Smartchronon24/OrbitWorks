@@ -762,12 +762,32 @@ const statusClass = d.status
       grid-template-columns: 1fr;
     }
 
-    .arch-node { min-width: unset; width: 100%; }
+    .arch-node {
+      min-width: unset;
+      width: 100%;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
+    .back-link,
+    .cs-link,
+    .pnav-link,
+    .pnav-all {
+      min-height: 44px;
+      align-items: center;
+    }
+
+    .back-link,
+    .cs-link,
+    .pnav-all {
+      display: inline-flex;
+    }
 
     .pnav-inner {
       grid-template-columns: 1fr 1fr;
       grid-template-rows: auto auto;
     }
+    .pnav-link { justify-content: center; }
     .pnav-all {
       grid-column: 1 / -1;
       justify-self: center;
