@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import InvoiceProcessingVisual from '../../components/InvoiceProcessingVisual.astro';
 import { getCollection } from 'astro:content';
 
 const all = await getCollection('projects');
@@ -39,6 +40,7 @@ const tier = () => 'major';
               aria-hidden="true"
             ></div>
           )}
+          {project.id === 'invoice-processing' && <InvoiceProcessingVisual />}
           <div class="pl-item-meta">
             <span class="pl-index">{String(i + 1).padStart(2, '0')}</span>
             {project.data.status && (
@@ -98,6 +100,7 @@ const tier = () => 'major';
     display: flex;
     flex-direction: column;
     gap: 0;
+    container-type: inline-size;
   }
 
   .pl-item {
@@ -212,6 +215,19 @@ const tier = () => 'major';
     isolation: isolate;
   }
 
+  .pl-item:has(.invoice-visual) {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  .pl-item:has(.invoice-visual) .pl-item-meta,
+  .pl-item:has(.invoice-visual) .pl-item-body,
+  .pl-item:has(.invoice-visual) .pl-item-arrow {
+    position: relative;
+    z-index: 1;
+  }
+
   .jarvis-work-particles-mesh {
     position: absolute;
     inset: 0;
@@ -254,6 +270,7 @@ const tier = () => 'major';
 
     .pl-item--major .pl-item-title { font-size: var(--text-lg); }
     .pl-item--medium .pl-item-title { font-size: var(--text-base); }
+
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -344,6 +361,7 @@ const tier = () => 'major';
       });
     }
 
+    document.addEventListener('astro:page-load', initializeJarvisWorkParticles);
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', initializeJarvisWorkParticles, { once: true });
     } else {

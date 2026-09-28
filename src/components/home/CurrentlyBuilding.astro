@@ -1,44 +1,70 @@
 ---
 import Button from '../primitives/Button.astro';
+import InvoiceProcessingVisual from '../InvoiceProcessingVisual.astro';
 import { getEntry } from 'astro:content';
 
-// Fetch the Jarvis project directly from the content collection
+// Fetch both active projects directly from the content collection
 const jarvis = await getEntry('projects', 'jarvis');
+const invoiceProcessing = await getEntry('projects', 'invoice-processing');
 ---
 <section class="currently-building reveal">
   <div class="cb-header">
     <p class="cb-eyebrow">CURRENTLY BUILDING</p>
   </div>
 
-  {jarvis && (
-    <div class="cb-card">
-      <div class="cb-status">
-        <span class="status-dot" aria-hidden="true"></span>
-        <span class="status-label">Active · Personal Research</span>
-      </div>
-
-      <div class="cb-content">
-        <div class="cb-main">
-          <h2 class="cb-title">{jarvis.data.title}</h2>
-          <p class="cb-desc">{jarvis.data.shortDescription}</p>
-          <p class="cb-detail">
-            An ongoing personal exploration into agentic AI systems, tool orchestration,
-            and autonomous task execution.
-          </p>
-          <Button href={`/OrbitWorks/projects/${jarvis.id}`} variant="outline">Explore Project →</Button>
+  <div class="cb-projects">
+    {jarvis && (
+      <div class="cb-card">
+        <div class="cb-status">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span class="status-label">Active · Personal Research</span>
         </div>
 
-        <div class="cb-meta">
-          <div
-            id="jarvis-particles-mesh"
-            class="jarvis-particles-mesh"
-            role="img"
-            aria-label="Interactive particle constellation representing the Jarvis architecture"
-          ></div>
+        <div class="cb-content">
+          <div class="cb-main">
+            <h2 class="cb-title">{jarvis.data.title}</h2>
+            <p class="cb-desc">{jarvis.data.shortDescription}</p>
+            <p class="cb-detail">
+              An ongoing personal exploration into agentic AI systems, tool orchestration,
+              and autonomous task execution.
+            </p>
+            <Button href={`/OrbitWorks/projects/${jarvis.id}`} variant="outline">Explore Project →</Button>
+          </div>
+
+          <div class="cb-meta">
+            <div
+              id="jarvis-particles-mesh"
+              class="jarvis-particles-mesh"
+              role="img"
+              aria-label="Interactive particle constellation representing the Jarvis architecture"
+            ></div>
+          </div>
         </div>
       </div>
-    </div>
-  )}
+    )}
+
+    {invoiceProcessing && (
+      <article class="cb-card cb-card--invoice">
+        <InvoiceProcessingVisual />
+        <div class="cb-status">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span class="status-label">{invoiceProcessing.data.status} · Document AI</span>
+        </div>
+
+        <div class="cb-content">
+          <div class="cb-main">
+            <h2 class="cb-title">{invoiceProcessing.data.title}</h2>
+            <p class="cb-desc">{invoiceProcessing.data.shortDescription}</p>
+            <p class="cb-detail">
+              Turns invoice images and PDFs into validated JSON and CSV using OCR,
+              LLM-assisted extraction, and deterministic checks.
+            </p>
+            <Button href={`/OrbitWorks/projects/${invoiceProcessing.id}`} variant="outline">Explore Project →</Button>
+          </div>
+        </div>
+      </article>
+    )}
+  </div>
 </section>
 
 <style>
@@ -55,14 +81,23 @@ const jarvis = await getEntry('projects', 'jarvis');
     margin: 0 0 var(--space-5) 0;
   }
 
+  .cb-projects {
+    display: grid;
+    gap: var(--space-4);
+  }
+
   .cb-card {
     position: relative;
     overflow: hidden;
     background-color: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: 8px;
-    padding: var(--space-6);
+    padding: var(--space-5);
     isolation: isolate;
+  }
+
+  .cb-card--invoice .cb-main {
+    max-width: 62%;
   }
 
   .cb-status {
@@ -71,7 +106,7 @@ const jarvis = await getEntry('projects', 'jarvis');
     display: flex;
     align-items: center;
     gap: var(--space-2);
-    margin-bottom: var(--space-5);
+    margin-bottom: var(--space-4);
     pointer-events: none;
   }
 
@@ -133,7 +168,7 @@ const jarvis = await getEntry('projects', 'jarvis');
   .cb-detail {
     font-size: var(--text-sm);
     color: var(--color-text-muted);
-    margin: 0 0 var(--space-5) 0;
+    margin: 0 0 var(--space-4) 0;
     line-height: 1.6;
     max-width: 480px;
   }
@@ -183,11 +218,15 @@ const jarvis = await getEntry('projects', 'jarvis');
 
   @media (max-width: 768px) {
     .cb-card {
-      min-height: 360px;
+      min-height: 340px;
     }
 
     .cb-content {
       grid-template-columns: 1fr;
+    }
+
+    .cb-card--invoice .cb-main {
+      max-width: 100%;
     }
   }
 
@@ -288,6 +327,7 @@ const jarvis = await getEntry('projects', 'jarvis');
       });
     }
 
+    document.addEventListener('astro:page-load', initializeJarvisParticles);
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', initializeJarvisParticles, { once: true });
     } else {

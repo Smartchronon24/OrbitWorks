@@ -1,130 +1,443 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Button from '../components/primitives/Button.astro';
+import { education } from '../data/education';
+import {
+  personalProjects,
+  resumeActivities,
+  resumeCertifications,
+  resumeExperience,
+  resumeLanguages,
+  resumeSkills
+} from '../data/resume';
 
 const resumeUrl = `${import.meta.env.BASE_URL}resume.pdf`;
+
+const listSkills = (items: string[]) => items.join(', ');
 ---
+
 <BaseLayout title="Resume — Navaneth Anand">
   <section class="resume-page">
-    <header class="page-header reveal">
-      <div class="header-left">
-        <h1 class="page-title">Resume</h1>
-        <p class="page-lead">A concise professional overview. See <a href="/OrbitWorks/projects" class="inline-link">Work</a> for deeper context.</p>
+    <header class="resume-toolbar reveal">
+      <div>
+        <h1>Resume</h1>
       </div>
-      <div class="header-right">
-        <Button href={resumeUrl} variant="primary" class="download-btn">Open PDF</Button>
-      </div>
+      <Button href={resumeUrl} variant="outline" class="download-resume" download="Navaneth-Anand-Resume.pdf">Download PDF ↓</Button>
     </header>
 
-    <div class="resume-viewer reveal" style="transition-delay: 0.1s;">
-      <object
-        data={resumeUrl}
-        type="application/pdf"
-        class="pdf-object"
-      >
-        <div class="pdf-fallback">
-          <p>Your browser doesn't support inline PDFs.</p>
-          <Button href={resumeUrl} variant="outline">Download Resume</Button>
+    <article class="resume-sheet reveal" aria-label="Resume of Navaneth Anand">
+      <header class="resume-identity">
+        <div>
+          <p class="identity-kicker">GENAI &amp; AGENTIC AI DEVELOPER</p>
+          <h2>Navaneth Anand</h2>
+          <p class="identity-summary">Building agentic systems, intelligent automation, and practical data pipelines.</p>
         </div>
-      </object>
-    </div>
+        <address class="contact-list">
+          <a href="mailto:navaneth24@gmail.com">navaneth24@gmail.com</a>
+          <a href="tel:+917358247423">+91 73582 47423</a>
+          <a href="https://www.linkedin.com/in/navaneth-anand-081123349/" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a>
+          <a href="https://github.com/Smartchronon24/" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+        </address>
+      </header>
+
+      <section class="resume-section">
+        <h3 class="section-title">Experience</h3>
+        {resumeExperience.map((role) => (
+          <article class="experience-entry">
+            <header class="entry-heading">
+              <div>
+                <h4>{role.company}</h4>
+                <p>{role.role}</p>
+              </div>
+              <time>{role.dates}</time>
+            </header>
+            {role.projects.map((project) => (
+              <div class="resume-project">
+                <h5>{project.name}</h5>
+                <p class="project-tech">{project.technologies}</p>
+                <ul>
+                  {project.contributions.map((contribution) => <li>{contribution}</li>)}
+                </ul>
+              </div>
+            ))}
+          </article>
+        ))}
+      </section>
+
+      <section class="resume-section resume-section--separated">
+        <h3 class="section-title">Personal Projects &amp; Other</h3>
+        <div class="project-list">
+          {personalProjects.map((project) => (
+            <article class="resume-project">
+              <h4>{project.name}</h4>
+              <p class="project-tech">{project.technologies}</p>
+              <ul>
+                {project.contributions.map((contribution) => <li>{contribution}</li>)}
+              </ul>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section class="resume-section resume-section--separated">
+        <h3 class="section-title">Education</h3>
+        <div class="education-list">
+          {education.map((item) => (
+            <article class="education-entry">
+              <div>
+                <h4>{item.institution}</h4>
+                <p>{item.degree}</p>
+                <p class="education-details">{item.details.join(' · ')}</p>
+              </div>
+              <time>{item.dates}</time>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section class="resume-section resume-section--separated technical-skills">
+        <h3 class="section-title">Technical Skills</h3>
+        <dl class="skills-list">
+          {resumeSkills.map((group) => (
+            <div class="skill-row">
+              <dt>{group.category}</dt>
+              <dd>{listSkills(group.items)}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+
+      <section class="resume-section resume-section--separated lower-grid">
+        <div class="certifications-block">
+          <h3 class="section-title">Certifications</h3>
+          <ul class="compact-list">
+            {resumeCertifications.map((certification) => <li>{certification}</li>)}
+          </ul>
+        </div>
+        <div>
+          <h3 class="section-title">Activities</h3>
+          <ul class="compact-list">
+            {resumeActivities.map((activity) => <li>{activity}</li>)}
+          </ul>
+        </div>
+        <div>
+          <h3 class="section-title">Languages</h3>
+          <ul class="compact-list">
+            {resumeLanguages.map((language) => <li>{language}</li>)}
+          </ul>
+        </div>
+      </section>
+    </article>
   </section>
 </BaseLayout>
 
 <style>
   .resume-page {
-    max-width: 880px;
+    max-width: 960px;
     margin: 0 auto;
     padding-bottom: var(--space-12);
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-6);
   }
 
-  .page-header {
+  .resume-toolbar {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    gap: var(--space-4);
-    margin-bottom: var(--space-2);
-  }
-
-  .header-left {
-    flex: 1;
-  }
-
-  .header-right {
-    display: flex;
     align-items: center;
-    padding-top: var(--space-1);
+    gap: var(--space-4);
+    margin-bottom: var(--space-5);
   }
 
-  .page-title {
-    font-size: var(--text-4xl);
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    margin: 0 0 var(--space-3) 0;
-    color: var(--color-text-primary);
-  }
-
-  .page-lead {
-    font-size: var(--text-lg);
-    color: var(--color-text-secondary);
-    margin: 0;
-  }
-
-  .inline-link {
+  .identity-kicker {
+    margin: 0 0 var(--space-2);
     color: var(--color-accent);
+    font: 600 var(--text-xs) var(--font-mono);
+    letter-spacing: 0.14em;
+  }
+
+  .resume-toolbar h1 {
+    margin: 0 0 var(--space-2);
+    font-size: var(--text-4xl);
+  }
+
+  .resume-sheet {
+    padding: clamp(1.25rem, 5vw, 4.5rem);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    background: var(--color-surface);
+    box-shadow: 0 18px 60px -40px var(--color-text-primary);
+  }
+
+  .resume-identity {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: var(--space-4);
+    padding-bottom: var(--space-5);
+    border-bottom: 2px solid var(--color-accent);
+  }
+
+  .resume-identity h2 {
+    margin: 0;
+    font-size: clamp(2rem, 5vw, 3.25rem);
+    letter-spacing: -0.05em;
+  }
+
+  .identity-summary {
+    margin: var(--space-2) 0 0;
+    color: var(--color-text-secondary);
+  }
+
+  .contact-list {
+    display: grid;
+    justify-items: end;
+    gap: 0.35rem;
+    font-size: var(--text-sm);
+    font-style: normal;
+  }
+
+  .contact-list a {
+    color: var(--color-text-secondary);
     text-decoration: none;
   }
 
-  .inline-link:hover {
-    text-decoration: underline;
+  .contact-list a:hover {
+    color: var(--color-accent);
   }
 
-  .resume-viewer {
-    width: 100%;
-    height: 75vh;
-    min-height: 600px;
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
-    overflow: hidden;
-    background-color: var(--color-surface);
+  .resume-section {
+    margin-top: var(--space-5);
   }
 
-  .pdf-object {
-    width: 100%;
-    height: 100%;
-    display: block;
+  .resume-section--separated {
+    margin-top: var(--space-6);
+    padding-top: var(--space-4);
+    border-top: 2px solid var(--color-accent);
   }
 
-  .pdf-fallback {
+  .section-title {
+    margin: 0 0 var(--space-3);
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-accent);
+    font: 600 var(--text-sm) var(--font-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .experience-entry + .experience-entry {
+    margin-top: var(--space-4);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .entry-heading,
+  .education-entry {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: var(--space-4);
-    height: 100%;
-    padding: var(--space-6);
-    text-align: center;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--space-3);
+  }
+
+  .entry-heading h4,
+  .education-entry h4 {
+    margin: 0;
+    font-size: var(--text-base);
+  }
+
+  .entry-heading p,
+  .education-entry p {
+    margin: 0;
     color: var(--color-text-secondary);
   }
 
-  @media (max-width: 768px) {
-    .resume-actions {
-      justify-content: flex-start;
+  time {
+    flex: 0 0 auto;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .resume-project {
+    margin-top: var(--space-3);
+    padding-left: var(--space-3);
+    border-left: 2px solid var(--color-border);
+  }
+
+  .resume-project h4,
+  .resume-project h5 {
+    margin: 0;
+    font-size: var(--text-sm);
+  }
+
+  .project-tech,
+  .education-details {
+    margin: 0.15rem 0 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+  }
+
+  .resume-project ul {
+    margin: var(--space-2) 0 0;
+    padding-left: 1.1rem;
+    color: var(--color-text-secondary);
+    font-size: var(--text-sm);
+  }
+
+  .resume-project li + li,
+  .compact-list li + li {
+    margin-top: 0.2rem;
+  }
+
+  .project-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+  }
+
+  .project-list .resume-project {
+    margin-top: 0;
+  }
+
+  .education-list {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .skills-list {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+  }
+
+  .technical-skills .skill-row dt,
+  .technical-skills .skill-row dd {
+    text-align: center;
+  }
+
+  .skill-row {
+    display: grid;
+    grid-template-columns: minmax(10rem, 0.3fr) minmax(0, 1fr);
+    gap: var(--space-3);
+  }
+
+  .skill-row dt {
+    color: var(--color-text-primary);
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+
+  .skill-row dd {
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-size: var(--text-sm);
+  }
+
+  .lower-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+
+  .certifications-block {
+    grid-column: 1 / -1;
+  }
+
+  .compact-list {
+    margin: 0;
+    padding-left: 1.1rem;
+    color: var(--color-text-secondary);
+    font-size: var(--text-sm);
+  }
+
+  :global(.download-resume) {
+    font-weight: 600;
+    transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+  }
+
+  :global([data-theme="dark"] .download-resume) {
+    color: #b8dcff;
+    border-color: #4dabf7;
+    background: rgba(77, 171, 247, 0.14);
+  }
+
+  :global([data-theme="dark"] .download-resume:hover) {
+    background: rgba(77, 171, 247, 0.23);
+  }
+
+  :global([data-theme="light"] .download-resume) {
+    color: #26374b;
+    border-color: #697b91;
+    background: #e8edf4;
+  }
+
+  :global([data-theme="light"] .download-resume:hover) {
+    background: #dbe3ed;
+  }
+
+  :global(.download-resume:focus-visible) {
+    outline: 3px solid var(--color-accent);
+    outline-offset: 3px;
+  }
+
+  @media (max-width: 700px) {
+    .resume-toolbar {
+      align-items: center;
+      flex-direction: row;
     }
-    
-    /* On smaller screens, the native PDF viewer in some mobile browsers works poorly.
-       We still show it, but the explicit 'Open PDF' button above it is crucial. */
-    .resume-viewer {
-      height: 60vh;
-      min-height: 400px;
+
+    .resume-identity {
+      grid-template-columns: 1fr;
+    }
+
+    .contact-list {
+      justify-items: start;
+    }
+
+    .project-list,
+    .lower-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .entry-heading,
+    .education-entry {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: var(--space-1);
+    }
+
+    .skill-row {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+
+    .skill-row {
+      grid-template-columns: 1fr;
+      gap: 0;
     }
   }
 
-  @media (max-width: 600px) {
-    .resume-page { padding-bottom: var(--space-8); }
-    .page-title { font-size: var(--text-3xl); }
+  @media print {
+    .resume-toolbar {
+      display: none;
+    }
+
+    .resume-page {
+      max-width: none;
+      padding: 0;
+    }
+
+    .resume-sheet {
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      box-shadow: none;
+      color: #111;
+      background: #fff;
+    }
+
+    .resume-section,
+    .resume-project,
+    .education-entry,
+    .experience-entry {
+      break-inside: avoid;
+    }
   }
 </style>

@@ -58,11 +58,25 @@ const { title = site.title, description = site.description } = Astro.props;
       inert
       transition:persist="orbitworks-ai"
     >
+      <div
+        class="workspace-resize-handle"
+        data-workspace-resize
+        role="separator"
+        aria-label="Resize OrbitWorks-AI workspace"
+        aria-orientation="vertical"
+        aria-controls="ai-workspace-panel"
+        aria-valuemin="280"
+        aria-valuemax="400"
+        aria-valuenow="360"
+        tabindex="0"
+      ></div>
       <AIChat />
     </aside>
   </div>
 
   <script>
+    import type { TransitionBeforeSwapEvent } from 'astro:transitions/client';
+
     let revealObserver: IntersectionObserver | undefined;
     const observeReveals = () => {
       revealObserver?.disconnect();
@@ -81,7 +95,78 @@ const { title = site.title, description = site.description } = Astro.props;
     observeReveals();
     document.addEventListener('astro:page-load', observeReveals);
 
+    document.addEventListener('astro:before-swap', (event: TransitionBeforeSwapEvent) => {
+      document.documentElement.classList.add('ai-workspace-navigating');
+      event.newDocument.documentElement.classList.add('ai-workspace-navigating');
+      event.newDocument.documentElement.style.setProperty('--ai-panel-width', `${panelWidth}px`);
+    });
+
     const panel = document.getElementById('ai-workspace-panel');
+    const resizeHandle = panel?.querySelector<HTMLElement>('[data-workspace-resize]');
+    const minPanelWidth = 280;
+    const defaultPanelWidth = 360;
+    const storedPanelWidth = Number(localStorage.getItem('ai-workspace-width'));
+    let panelWidth = Number.isFinite(storedPanelWidth) && storedPanelWidth > 0
+      ? storedPanelWidth
+      : defaultPanelWidth;
+    const maxPanelWidth = () => Math.floor(window.innerWidth / 2);
+    const updatePanelWidth = (width: number) => {
+      if (!panel || !resizeHandle) return;
+      panelWidth = Math.round(Math.min(
+        maxPanelWidth(),
+        Math.max(Math.min(minPanelWidth, maxPanelWidth()), width)
+      ));
+      document.documentElement.style.setProperty('--ai-panel-width', `${panelWidth}px`);
+      localStorage.setItem('ai-workspace-width', String(panelWidth));
+      resizeHandle.setAttribute('aria-valuemax', String(maxPanelWidth()));
+      resizeHandle.setAttribute('aria-valuenow', String(panelWidth));
+    };
+
+    if (panel && resizeHandle) {
+      updatePanelWidth(panelWidth);
+
+      resizeHandle.addEventListener('pointerdown', (event) => {
+        if (window.matchMedia('(max-width: 900px)').matches) return;
+        event.preventDefault();
+        panel?.parentElement?.classList.add('is-resizing');
+        resizeHandle.setPointerCapture(event.pointerId);
+
+        const resize = (moveEvent: PointerEvent) => {
+          updatePanelWidth(panel.getBoundingClientRect().right - moveEvent.clientX);
+        };
+        const finishResize = (upEvent: PointerEvent) => {
+          resizeHandle.removeEventListener('pointermove', resize);
+          resizeHandle.removeEventListener('pointerup', finishResize);
+          resizeHandle.removeEventListener('pointercancel', finishResize);
+          panel?.parentElement?.classList.remove('is-resizing');
+          if (resizeHandle.hasPointerCapture(upEvent.pointerId)) {
+            resizeHandle.releasePointerCapture(upEvent.pointerId);
+          }
+        };
+
+        resizeHandle.addEventListener('pointermove', resize);
+        resizeHandle.addEventListener('pointerup', finishResize);
+        resizeHandle.addEventListener('pointercancel', finishResize);
+      });
+
+      resizeHandle.addEventListener('keydown', (event) => {
+        const currentWidth = Number(resizeHandle.getAttribute('aria-valuenow'));
+        const step = event.shiftKey ? 40 : 20;
+        if (event.key === 'ArrowLeft') updatePanelWidth(currentWidth + step);
+        else if (event.key === 'ArrowRight') updatePanelWidth(currentWidth - step);
+        else if (event.key === 'Home') updatePanelWidth(Math.min(minPanelWidth, maxPanelWidth()));
+        else if (event.key === 'End') updatePanelWidth(maxPanelWidth());
+        else return;
+        event.preventDefault();
+      });
+
+      window.addEventListener('resize', () => {
+        updatePanelWidth(panelWidth);
+      });
+
+      document.addEventListener('astro:page-load', () => updatePanelWidth(panelWidth));
+    }
+
     const setWorkspaceOpen = (open: boolean, restoreFocus = true) => {
       if (!panel) return;
       document.documentElement.classList.toggle('ai-workspace-open', open);
@@ -102,6 +187,7 @@ const { title = site.title, description = site.description } = Astro.props;
 
     const syncWorkspaceState = () => {
       if (!panel) return;
+      updatePanelWidth(panelWidth);
       const open = panel.dataset.open === 'true';
       document.documentElement.classList.toggle('ai-workspace-open', open);
       panel.setAttribute('aria-hidden', String(!open));
@@ -114,6 +200,13 @@ const { title = site.title, description = site.description } = Astro.props;
 
     syncWorkspaceState();
     document.addEventListener('astro:page-load', syncWorkspaceState);
+    document.addEventListener('astro:page-load', () => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          document.documentElement.classList.remove('ai-workspace-navigating');
+        });
+      });
+    });
 
     document.addEventListener('click', (event) => {
       const target = event.target;
@@ -135,6 +228,10 @@ const { title = site.title, description = site.description } = Astro.props;
 </html>
 
 <style>
+  :global(:root) {
+    --ai-panel-width: min(360px, 50vw);
+  }
+
   .workspace-shell {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 0fr;
@@ -144,6 +241,11 @@ const { title = site.title, description = site.description } = Astro.props;
     margin: 0 auto;
     padding: 0 var(--space-4);
     transition: grid-template-columns 280ms ease, gap 280ms ease;
+  }
+
+  .workspace-shell.is-resizing,
+  :global(html.ai-workspace-navigating) .workspace-shell {
+    transition: none;
   }
 
   .workspace-content {
@@ -165,17 +267,58 @@ const { title = site.title, description = site.description } = Astro.props;
     transition: opacity 200ms ease, visibility 0s linear 280ms;
   }
 
+  :global(html.ai-workspace-navigating .workspace-panel) {
+    transition: none !important;
+  }
+
   :global(.workspace-shell:has(> #ai-workspace-panel[data-open="true"])) {
-    grid-template-columns: minmax(0, 1fr) minmax(320px, clamp(320px, 30vw, 400px));
+    grid-template-columns: minmax(0, 1fr) minmax(min(280px, 50vw), min(var(--ai-panel-width), 50vw));
     gap: var(--space-3);
   }
 
   :global(.workspace-shell:has(> #ai-workspace-panel[data-open="true"])) .workspace-panel {
+    position: sticky;
     width: auto;
+    padding-left: 10px;
     visibility: visible;
     opacity: 1;
     border-width: 1px;
     transition: opacity 200ms ease, visibility 0s;
+  }
+
+  .workspace-resize-handle {
+    position: absolute;
+    z-index: 2;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 10px;
+    border-radius: 12px 0 0 12px;
+    cursor: col-resize;
+    touch-action: none;
+  }
+
+  .workspace-resize-handle::after {
+    position: absolute;
+    top: 50%;
+    left: 3px;
+    width: 3px;
+    height: 36px;
+    border-radius: 999px;
+    background: var(--color-border);
+    content: '';
+    transform: translateY(-50%);
+    transition: background-color var(--transition-fast), height var(--transition-fast);
+  }
+
+  .workspace-resize-handle:hover::after,
+  .workspace-resize-handle:focus-visible::after {
+    height: 48px;
+    background: var(--color-accent);
+  }
+
+  .workspace-resize-handle:focus-visible {
+    outline: none;
   }
 
   .page-main {
@@ -216,6 +359,7 @@ const { title = site.title, description = site.description } = Astro.props;
       inset: var(--layout-nav-height) 0 0;
       width: auto;
       height: auto;
+      padding-left: 0;
       padding: var(--space-2) var(--space-3) var(--space-3);
       border: 0;
       border-radius: 0;
@@ -234,6 +378,10 @@ const { title = site.title, description = site.description } = Astro.props;
       opacity: 1;
       border-top: 1px solid var(--color-border);
       transition: transform 280ms ease, opacity 200ms ease, visibility 0s;
+    }
+
+    .workspace-resize-handle {
+      display: none;
     }
 
     .page-main {

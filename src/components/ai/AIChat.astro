@@ -12,12 +12,15 @@ const { endpoint = import.meta.env.PUBLIC_AI_API_URL || '/api/chat' } = Astro.pr
       <p class="ai-chat-eyebrow">PORTFOLIO ASSISTANT</p>
       <h2 id="ai-chat-title">OrbitWorks-AI</h2>
     </div>
-    <button class="ai-close" type="button" data-ai-close aria-label="Close OrbitWorks-AI workspace">×</button>
+    <div class="ai-chat-header-actions">
+      <button class="ai-clear" type="button" data-clear aria-label="Start a new chat">New chat</button>
+      <button class="ai-close" type="button" data-ai-close aria-label="Close OrbitWorks-AI workspace">×</button>
+    </div>
   </header>
 
   <div class="ai-chat-panel">
     <div class="ai-messages" data-messages role="log" aria-live="polite" aria-relevant="additions text">
-      <div class="ai-message ai-message--assistant" data-role="assistant">
+      <div class="ai-message ai-message--assistant" data-role="assistant" data-welcome>
         <span class="ai-message-label">OrbitWorks-AI</span>
         <div class="ai-message-content"><p>Ask about Navaneth's projects, experience, or technical work.</p></div>
       </div>
@@ -51,6 +54,7 @@ const { endpoint = import.meta.env.PUBLIC_AI_API_URL || '/api/chat' } = Astro.pr
   import DOMPurify from 'dompurify';
 
   type MessageElement = HTMLDivElement & { dataset: DOMStringMap };
+  type ConversationMessage = { role: 'user' | 'assistant'; content: string };
 
   const chat = document.querySelector<HTMLElement>('.ai-chat');
   const form = chat?.querySelector<HTMLFormElement>('[data-form]');
@@ -59,11 +63,17 @@ const { endpoint = import.meta.env.PUBLIC_AI_API_URL || '/api/chat' } = Astro.pr
   const status = chat?.querySelector<HTMLParagraphElement>('[data-status]');
   const send = chat?.querySelector<HTMLButtonElement>('[data-send]');
   const wordCount = chat?.querySelector<HTMLSpanElement>('[data-word-count]');
+  const clear = chat?.querySelector<HTMLButtonElement>('[data-clear]');
   const endpoint = chat?.dataset.endpoint;
 
-  if (chat && form && input && messages && status && send && wordCount && endpoint) {
+  if (chat && form && input && messages && status && send && wordCount && clear && endpoint) {
     const wordsPerQuestion = 25;
     const maxQuestions = 4;
+    const maxContextMessages = 10;
+    const maxContextMessageLength = 12000;
+    const historyStorageKey = 'orbitworks-ai-history-v1';
+    const welcomeMessage = messages.querySelector<HTMLElement>('[data-welcome]')?.cloneNode(true) || null;
+    let conversationHistory: ConversationMessage[] = [];
     const countWords = (value: string) => value.trim() ? value.trim().split(/\s+/).length : 0;
     const countQuestions = (value: string) => {
       const explicitQuestions = (value.match(/\?/g) || []).length;
@@ -91,6 +101,37 @@ const { endpoint = import.meta.env.PUBLIC_AI_API_URL || '/api/chat' } = Astro.pr
       status.classList.add('ai-status--error');
     };
 
+    const readConversationHistory = (): ConversationMessage[] => {
+      const saved = window.localStorage.getItem(historyStorageKey);
+      if (!saved) return [];
+      const parsed: unknown = JSON.parse(saved);
+      if (!Array.isArray(parsed)) throw new Error('Saved chat history has an invalid format.');
+      const history = parsed.map((item): ConversationMessage => {
+        if (
+          !item ||
+          typeof item !== 'object' ||
+          !('role' in item) ||
+          !('content' in item) ||
+          (item.role !== 'user' && item.role !== 'assistant') ||
+          typeof item.content !== 'string' ||
+          !item.content.trim() ||
+          item.content.length > maxContextMessageLength
+        ) {
+          throw new Error('Saved chat history contains an invalid message.');
+        }
+        return { role: item.role, content: item.content };
+      });
+      return history.slice(-maxContextMessages);
+    };
+
+    const persistConversationHistory = () => {
+      try {
+        window.localStorage.setItem(historyStorageKey, JSON.stringify(conversationHistory));
+      } catch {
+        showValidation('This browser could not save chat history. The conversation will be lost if you refresh.');
+      }
+    };
+
     const addMessage = (role: 'user' | 'assistant', text = ''): MessageElement => {
       const message = document.createElement('div') as MessageElement;
       message.className = `ai-message ai-message--${role}`;
@@ -109,9 +150,23 @@ const { endpoint = import.meta.env.PUBLIC_AI_API_URL || '/api/chat' } = Astro.pr
       return message;
     };
 
+    clear.addEventListener('click', () => {
+      conversationHistory = [];
+      messages.querySelectorAll('.ai-message').forEach((message) => message.remove());
+      if (welcomeMessage) messages.appendChild(welcomeMessage.cloneNode(true));
+      try {
+        window.localStorage.removeItem(historyStorageKey);
+        status.textContent = 'Conversation history cleared.';
+        status.classList.remove('ai-status--error');
+      } catch {
+        showValidation('This browser could not clear saved chat history.');
+      }
+    });
+
     const setBusy = (busy: boolean) => {
       input.disabled = busy;
       send.disabled = busy;
+      clear.disabled = busy;
       send.setAttribute('aria-busy', String(busy));
     };
 
@@ -134,6 +189,16 @@ const { endpoint = import.meta.env.PUBLIC_AI_API_URL || '/api/chat' } = Astro.pr
       const markdown = marked.parse(content.dataset.raw || '', { async: false, breaks: true });
       content.innerHTML = DOMPurify.sanitize(markdown);
     };
+
+    try {
+      conversationHistory = readConversationHistory();
+      if (conversationHistory.length) {
+        messages.querySelector('[data-welcome]')?.remove();
+        conversationHistory.forEach(({ role, content }) => addMessage(role, content));
+      }
+    } catch {
+      showValidation('Saved chat history could not be read. Start a new chat to clear it.');
+    }
 
     const extractChunk = (value: unknown): string => {
       if (typeof value === 'string') return value;
@@ -209,7 +274,7 @@ const { endpoint = import.meta.env.PUBLIC_AI_API_URL || '/api/chat' } = Astro.pr
         const response = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message })
+          body: JSON.stringify({ message, history: conversationHistory.slice(-maxContextMessages) })
         });
         if (!response.ok) {
           const detail = await response.text();
@@ -222,6 +287,15 @@ const { endpoint = import.meta.env.PUBLIC_AI_API_URL || '/api/chat' } = Astro.pr
         }
         status.textContent = '';
         status.classList.remove('ai-status--error');
+        const answer = assistant.querySelector<HTMLElement>('.ai-message-content')?.dataset.raw;
+        if (answer) {
+          conversationHistory = [
+            ...conversationHistory,
+            { role: 'user', content: message },
+            { role: 'assistant', content: answer }
+          ].slice(-maxContextMessages);
+          persistConversationHistory();
+        }
       } catch (error) {
         assistant.remove();
         status.textContent = error instanceof Error
@@ -282,6 +356,33 @@ const { endpoint = import.meta.env.PUBLIC_AI_API_URL || '/api/chat' } = Astro.pr
     font-size: var(--text-lg);
   }
 
+  .ai-chat-header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .ai-clear {
+    padding: 0.35rem 0.55rem;
+    border: 1px solid var(--color-border);
+    border-radius: 5px;
+    background: transparent;
+    color: var(--color-text-secondary);
+    font: inherit;
+    font-size: var(--text-xs);
+    cursor: pointer;
+  }
+
+  .ai-clear:hover:not(:disabled) {
+    background: var(--color-surface-hover);
+    color: var(--color-text-primary);
+  }
+
+  .ai-clear:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
   .ai-close {
     display: inline-flex;
     width: 2.25rem;
@@ -324,24 +425,35 @@ const { endpoint = import.meta.env.PUBLIC_AI_API_URL || '/api/chat' } = Astro.pr
     scrollbar-gutter: stable;
   }
 
-  .ai-message {
+  .ai-chat :global(.ai-message) {
     width: 100%;
     max-width: none;
     padding: var(--space-3);
     border: 1px solid var(--color-border);
-    border-radius: 7px;
-    background: var(--color-canvas-bg);
+    border-radius: 4px 12px 12px 12px;
+    background: color-mix(in srgb, var(--color-accent) 3%, var(--color-canvas-bg));
   }
 
-  .ai-message--user {
+  .ai-chat :global(.ai-message--user) {
+    width: fit-content;
+    max-width: 88%;
     align-self: flex-end;
     color: var(--color-text-primary);
-    background: var(--color-surface);
+    border-color: color-mix(in srgb, var(--color-accent) 22%, var(--color-border));
+    border-radius: 12px 12px 4px 12px;
+    background: color-mix(in srgb, var(--color-accent) 8%, var(--color-surface));
   }
 
-  .ai-message-label {
-    display: block;
-    margin-bottom: var(--space-1);
+  .ai-chat :global(.ai-message--assistant) {
+    border-left: 2px solid var(--color-accent);
+    box-shadow: 0 8px 22px -22px color-mix(in srgb, var(--color-accent) 55%, transparent);
+  }
+
+  .ai-chat :global(.ai-message-label) {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: var(--space-2);
     color: var(--color-text-muted);
     font-family: var(--font-mono);
     font-size: var(--text-xs);
@@ -349,76 +461,101 @@ const { endpoint = import.meta.env.PUBLIC_AI_API_URL || '/api/chat' } = Astro.pr
     text-transform: uppercase;
   }
 
-  .ai-message > p,
-  .ai-message-content {
+  .ai-chat :global(.ai-message--assistant .ai-message-label) {
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+    font-weight: 650;
+    letter-spacing: 0.01em;
+    text-transform: none;
+  }
+
+  .ai-chat :global(.ai-message--assistant .ai-message-label::before) {
+    width: 0.65rem;
+    height: 0.65rem;
+    border: 2px solid var(--color-accent);
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--color-accent) 18%, var(--color-surface));
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 10%, transparent);
+    content: '';
+  }
+
+  .ai-chat :global(.ai-message--user .ai-message-label) {
+    color: var(--color-accent);
+    font-size: 0.68rem;
+    letter-spacing: 0.11em;
+    text-transform: none;
+  }
+
+  .ai-chat :global(.ai-message > p),
+  .ai-chat :global(.ai-message-content) {
     margin: 0;
     white-space: pre-wrap;
     overflow-wrap: anywhere;
   }
 
-  .ai-message--pending .ai-message-content:empty::after {
+  .ai-chat :global(.ai-message--pending .ai-message-content:empty::after) {
     content: '…';
     animation: ai-pulse 1s steps(2, end) infinite;
   }
 
-  .ai-message-content > :first-child { margin-top: 0; }
-  .ai-message-content > :last-child { margin-bottom: 0; }
-  .ai-message-content h1,
-  .ai-message-content h2,
-  .ai-message-content h3,
-  .ai-message-content h4 {
+  .ai-chat :global(.ai-message-content > :first-child) { margin-top: 0; }
+  .ai-chat :global(.ai-message-content > :last-child) { margin-bottom: 0; }
+  .ai-chat :global(.ai-message-content h1),
+  .ai-chat :global(.ai-message-content h2),
+  .ai-chat :global(.ai-message-content h3),
+  .ai-chat :global(.ai-message-content h4) {
     margin: var(--space-3) 0 var(--space-2);
     color: var(--color-text-primary);
   }
-  .ai-message-content h1 { font-size: var(--text-xl); }
-  .ai-message-content h2 { font-size: var(--text-lg); }
-  .ai-message-content h3,
-  .ai-message-content h4 { font-size: var(--text-base); }
-  .ai-message-content p,
-  .ai-message-content ul,
-  .ai-message-content ol,
-  .ai-message-content blockquote,
-  .ai-message-content pre,
-  .ai-message-content table {
+  .ai-chat :global(.ai-message-content h1) { font-size: var(--text-xl); }
+  .ai-chat :global(.ai-message-content h2) { font-size: var(--text-lg); }
+  .ai-chat :global(.ai-message-content h3),
+  .ai-chat :global(.ai-message-content h4) { font-size: var(--text-base); }
+  .ai-chat :global(.ai-message-content p),
+  .ai-chat :global(.ai-message-content ul),
+  .ai-chat :global(.ai-message-content ol),
+  .ai-chat :global(.ai-message-content blockquote),
+  .ai-chat :global(.ai-message-content pre),
+  .ai-chat :global(.ai-message-content table) {
     margin: 0 0 var(--space-3);
   }
-  .ai-message-content ul,
-  .ai-message-content ol { padding-left: 1.4rem; }
-  .ai-message-content li + li { margin-top: var(--space-1); }
-  .ai-message-content blockquote {
+  .ai-chat :global(.ai-message-content ul),
+  .ai-chat :global(.ai-message-content ol) { padding-left: 1.4rem; }
+  .ai-chat :global(.ai-message-content li + li) { margin-top: var(--space-1); }
+  .ai-chat :global(.ai-message-content blockquote) {
     padding-left: var(--space-3);
     border-left: 2px solid var(--color-border);
     color: var(--color-text-secondary);
   }
-  .ai-message-content :not(pre) > code {
+  .ai-chat :global(.ai-message-content :not(pre) > code) {
     padding: 0.1em 0.35em;
     border-radius: 4px;
     background: var(--color-surface-hover);
     font-family: var(--font-mono);
     font-size: 0.9em;
   }
-  .ai-message-content pre {
+  .ai-chat :global(.ai-message-content pre) {
     overflow-x: auto;
     padding: var(--space-3);
     border: 1px solid var(--color-border);
     border-radius: 6px;
     background: var(--color-canvas-bg);
   }
-  .ai-message-content pre code { font-family: var(--font-mono); font-size: var(--text-xs); }
-  .ai-message-content table {
+  .ai-chat :global(.ai-message-content pre code) { font-family: var(--font-mono); font-size: var(--text-xs); }
+  .ai-chat :global(.ai-message-content table) {
     display: block;
     max-width: 100%;
     overflow-x: auto;
     border-collapse: collapse;
   }
-  .ai-message-content th,
-  .ai-message-content td {
+  .ai-chat :global(.ai-message-content th),
+  .ai-chat :global(.ai-message-content td) {
     padding: var(--space-1) var(--space-2);
     border: 1px solid var(--color-border);
     text-align: left;
   }
-  .ai-message-content th { color: var(--color-text-primary); }
-  .ai-message-content a { color: var(--color-accent); text-decoration: underline; }
+  .ai-chat :global(.ai-message-content th) { color: var(--color-text-primary); }
+  .ai-chat :global(.ai-message-content a) { color: var(--color-accent); text-decoration: underline; }
 
   .ai-status {
     min-height: 1.5rem;
@@ -504,12 +641,12 @@ const { endpoint = import.meta.env.PUBLIC_AI_API_URL || '/api/chat' } = Astro.pr
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .ai-message--pending .ai-message-content:empty::after { animation: none; }
+    .ai-chat :global(.ai-message--pending .ai-message-content:empty::after) { animation: none; }
   }
 
   @media (max-width: 600px) {
     .ai-chat-header { padding: var(--space-2) var(--space-3); }
     .ai-messages { padding: var(--space-3); }
-    .ai-message { padding: var(--space-2) var(--space-3); }
+    .ai-chat :global(.ai-message) { padding: var(--space-2) var(--space-3); }
   }
 </style>

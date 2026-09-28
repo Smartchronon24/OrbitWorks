@@ -69,7 +69,7 @@ npm run worker:dev # Run the Cloudflare Worker locally
 
 ## OrbitWorks-AI setup
 
-The AI workspace calls a Cloudflare Worker. For local builds, copy `.env.example` to `.env` and set `PUBLIC_AI_API_URL`; the local environment file is ignored by Git. GitHub Pages builds read this URL from the repository Actions variable named `PUBLIC_AI_API_URL`. Set it in **Settings → Secrets and variables → Actions → Variables** to the public chat endpoint, including `/api/chat` (for example, `https://<worker>.<account>.workers.dev/api/chat`). It is a public endpoint, not a credential. The Pages workflow stops with an error if the variable is missing, rather than publishing a site whose chat silently points to a nonexistent GitHub Pages API.
+The AI workspace calls a Cloudflare Worker. For local development, run `npm run worker:dev` alongside `npm run dev`; the Astro dev server proxies `/api/*` to the local Worker at `127.0.0.1:8787`. To use a different endpoint, copy `.env.example` to `.env` and set `PUBLIC_AI_API_URL`; the local environment file is ignored by Git. GitHub Pages builds read this URL from the repository Actions variable named `PUBLIC_AI_API_URL`. Set it in **Settings → Secrets and variables → Actions → Variables** to the public chat endpoint, including `/api/chat` (for example, `https://<worker>.<account>.workers.dev/api/chat`). It is a public endpoint, not a credential. The Pages workflow stops with an error if the variable is missing, rather than publishing a site whose chat silently points to a nonexistent GitHub Pages API.
 
 The Worker is configured in `wrangler.jsonc` and uses Workers AI plus the `orbitworks-knowledge` Vectorize index. For local development, copy `.dev.vars.example` to `.dev.vars` and set a private `KNOWLEDGE_INGEST_TOKEN`; `.dev.vars` is ignored. Run the Worker with:
 
@@ -237,6 +237,8 @@ For the full schema, status meanings, architecture-flow rules, metrics guidance,
 ## Updating supporting content
 
 - Replace `public/resume.pdf` with the real resume PDF when updating the resume.
+- To refresh the HTML resume, attach your latest resume PDF in the chat and ask for the resume page to be updated. The PDF is the source of truth: update `src/data/resume.ts` with its verified content, replace `public/resume.pdf`, then build and check `/resume`.
+- Resume-specific experience, personal projects, certifications, languages, and activities are maintained in `src/data/resume.ts`. Education and technical skills are shared with the rest of the site through `src/data/education.ts` and `src/data/skills.ts`.
 - Edit `src/data/experience.ts` for roles, descriptions, tags, dates, and related project slugs.
 - Edit `src/data/education.ts`, `src/data/certifications.ts`, and `src/data/skills.ts` for About-page content.
 - Add static images under `public/images/` and reference them with root-relative paths such as `/images/projects/example/hero.png`.
@@ -292,7 +294,7 @@ Canonical Portfolio Content
  Context Assembly and Streaming Generation
 ```
 
-The chat frontend and `/api/chat` Worker preserve streaming and Markdown responses. Retrieval and knowledge files remain server-side; there is no live connection to external profile or email services. See [`src/ai/README.md`](./src/ai/README.md) for the integration boundary.
+The chat frontend and `/api/chat` Worker preserve streaming and Markdown responses. The browser stores the latest 10 chat messages in local storage and sends them as follow-up context; use **New chat** to clear them. Retrieval and knowledge files remain server-side; there is no live connection to external profile or email services. See [`src/ai/README.md`](./src/ai/README.md) for the integration boundary.
 
 ## Validation checklist
 
